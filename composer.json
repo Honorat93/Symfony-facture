@@ -20,7 +20,8 @@
         "symfony/security-bundle": "7.0.*",
         "symfony/serializer": "7.0.*",
         "symfony/validator": "7.0.*",
-        "symfony/yaml": "7.0.*"
+        "symfony/yaml": "7.0.*",
+        "tecnickcom/tcpdf": "^6.7"
     },
     "require-dev": {
         "symfony/maker-bundle": "^1.59"
