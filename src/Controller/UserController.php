@@ -16,6 +16,8 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\Cache\Adapter\CacheItemPoolInterface;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
 
 
 
@@ -45,12 +47,30 @@ class UserController extends AbstractController
         $this->tokenVerifier = $tokenVerifier;
     }
 
+        #[Route('/', name: 'register_form')]
+    public function showRegistrationForm(Request $request): Response
+    {
+        return $this->render('register.html.twig');
+    }
+
+    #[Route('/login', name: 'login_form', methods: ['GET'])]
+    public function showLoginForm(): Response
+    {
+        return $this->render('login.html.twig');
+    }
+
+    #[Route('/home', name: 'homepage')]
+    public function index(): Response
+    {
+        return $this->render('index.html.twig');
+    }
+    
     #[Route('/register', name: 'create_user', methods: 'POST')]
-    public function createUser(Request $request): JsonResponse
+    public function createUser(Request $request): Response
     {
         try {
             $firstname = $request->request->get('firstname');
-            $lastName = $request->request->get('lastname');
+            $lastname = $request->request->get('lastname');
             $email = $request->request->get('email');
             $genre = $request->request->get('genre');
             $rgpd = $request->request->get('rgpd');
@@ -90,7 +110,7 @@ class UserController extends AbstractController
 
             $user = new User();
             $user->setFirstName($firstname)
-                ->setLastName($lastName)
+                ->setLastName($lastname)
                 ->setEmail($email)
                 ->setGenre($genre)
                 ->setRgpd($rgpd)
@@ -111,10 +131,11 @@ class UserController extends AbstractController
             $this->entityManager->persist($user);
             $this->entityManager->flush();
 
+            return new RedirectResponse($this->generateUrl('login_user'));
 
             return $this->json([
                 'success' => true,
-                'message' => 'Utilisateur créé avec succès.',
+                'message' => 'L\'tilisateur a bien été créé avec succès.',
                 'user' => [
                     'firstname' => $user->getFirstName(),
                     'lastname' => $user->getLastName(),
@@ -123,16 +144,15 @@ class UserController extends AbstractController
                     'rgpd' => $user->getRgpd(),
                 ],
             ], Response::HTTP_CREATED);
-        } catch (\Exception $e) {
-            return $this->json([
-                'error' => true,
-                'message' => 'Erreur lors de la création de l\'utilisateur : ' . $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => 'Error: ' . $e->getMessage(),
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
     }
 
     #[Route('/login', name: 'login_user', methods: 'POST')]
-    public function login(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    public function login(Request $request, JWTTokenManagerInterface $jwtManager): Response
     {
         try {
             $email = $request->request->get('email');
@@ -178,7 +198,8 @@ class UserController extends AbstractController
             
             $token = $jwtManager->create($user);
 
-            
+            return new RedirectResponse($this->generateUrl('homepage'));
+
             return $this->json([
                 'error' => false,
                 'message' => "L'utilisateur a été authentifié avec succès",
@@ -197,8 +218,8 @@ class UserController extends AbstractController
         }
     }
 
-    #[Route('/user', name: 'update_user', methods: 'POST')]
-    public function updateUser(Request $request): JsonResponse
+    /*#[Route('/user', name: 'update', methods: 'POST')]
+    public function update(Request $request): JsonResponse
     {
         try {
 
@@ -208,8 +229,8 @@ class UserController extends AbstractController
             }
             $user = $dataMiddellware;
 
-        $firstName = $request->request->get('firstname');
-        $lastName = $request->request->get('lastname');
+        $firstname = $request->request->get('firstname');
+        $lastname = $request->request->get('lastname');
         $genre = $request->request->get('genre');
 
         $keys = array_keys($request->request->all());
@@ -234,7 +255,7 @@ class UserController extends AbstractController
         }
 
        
-        if (isset($firstName) && (strlen($firstName) < 1 || strlen($firstName) > 60)) {
+        if (isset($firstname) && (strlen($firstname) < 1 || strlen($firstname) > 60)) {
             return new JsonResponse([
                 'error' => true,
                 'message' => 'La longueur du prénom doit être comprise entre 1 et 60 caractères.',
@@ -242,7 +263,7 @@ class UserController extends AbstractController
         }
 
        
-        if (isset($lastName) && (strlen($lastName) < 1 || strlen($lastName) > 60)) {
+        if (isset($lastname) && (strlen($lastname) < 1 || strlen($lastname) > 60)) {
             return new JsonResponse([
                 'error' => true,
                 'message' => 'La longueur du nom de famille doit être comprise entre 1 et 60 caractères.',
@@ -250,12 +271,12 @@ class UserController extends AbstractController
         }
 
     
-        if ($firstName !== null) {
-            $user->setFirstName($firstName);
+        if ($firstname !== null) {
+            $user->setFirstName($firstname);
         }
 
-        if ($lastName !== null) {
-            $user->setLastName($lastName);
+        if ($lastname !== null) {
+            $user->setLastName($lastname);
         }
 
         if ($genre !== null) {
@@ -265,7 +286,7 @@ class UserController extends AbstractController
         
         $this->entityManager->flush();
 
-        if (empty($firstName) && empty($lastName) && empty($genre)) {
+        if (empty($firstname) && empty($lastname) && empty($genre)) {
             return new JsonResponse([
                 'error' => true,
                 'message' => 'Les données fournies sont invalides ou incomplètes.',
@@ -274,16 +295,99 @@ class UserController extends AbstractController
 
         return $this->json([
             'error' => false,
-            'message' => 'Les informations de l\'utilisateur ont été mises à jour avec succès.',
+            'message' => 'Votre inscription a bien été prise en compte',
         ]);
     } catch (\Exception $e) {
-    
         return new JsonResponse([
-            'error' => true,
-            'message' => 'Une erreur est survenue lors de la mise à jour des informations de l\'utilisateur : ' . $e->getMessage(),
-        ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+            'error' => 'Error: ' . $e->getMessage(),
+        ], JsonResponse::HTTP_NOT_FOUND);
     }
-}
+}*/
+
+#[Route('/user/{id}', name: 'update_user', methods: ['PUT'])]
+    public function updateUser(Request $request, int $id): JsonResponse
+    {
+        try {
+            $dataMiddleware = $this->tokenVerifier->checkToken($request);
+            if (gettype($dataMiddleware) === 'boolean') {
+                return $this->json(
+                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                    JsonResponse::HTTP_UNAUTHORIZED
+                );
+            }
+            $user = $dataMiddleware;
+
+            if (!$id) {
+                return $this->json([
+                    'error' => true,
+                    'message' => "L'ID de l'utilisateur est obligatoire pour cette requête."
+                ], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $user = $this->userRepository->find($id);
+
+            if (!$user) {
+                return $this->json([
+                    'error' => true,
+                    'message' => "Aucun utilisateur trouvé correspndant à l'id fourni."
+                ], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            $firstname = $request->request->get('firstname');
+            $lastname = $request->request->get('lastname');
+            $email = $request->request->get('email');
+            $genre = $request->request->get('genre');
+            $rgpd = $request->request->get('rgpd');
+
+
+            $additionalParams = array_diff(array_keys($request->request->all()), ['firstname', 'lastname', 'email', 'genre', 'rgpd']);
+            if (!empty($additionalParams)) {
+                return $this->json([
+                    'error' => true,
+                    'message' => "Les paramètres fournis sont invalides. Veuillez vérifier les données soumises."
+                ], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+
+            $existingUser = $this->userRepository->findOneBy(['email' => $email]);
+            if ($existingUser) {
+                return new JsonResponse([
+                    'error' => true,
+                    'message' => 'Cet email est déjà utilisé par un autre compte.',
+                ], JsonResponse::HTTP_CONFLICT);
+            }
+
+            if ($firstname !== null) {
+                $user->setFirstName($firstname);
+            }
+
+            if ($lastname !== null) {
+                $user->setlastName($lastname);
+            }
+
+            if ($email !== null) {
+                $user->setEmail($email);
+            }
+
+            if ($genre !== null) {
+                $user->setGenre($genre);
+            }
+
+            if ($rgpd !== null) {
+                $user->setRgpd($rgpd);
+            }
+
+            $this->entityManager->flush();
+
+            return $this->json([
+                'error' => false,
+                'message' => "Utilisateur mis à jour avec succès."
+            ], JsonResponse::HTTP_OK);
+        } catch (\Exception $e) {
+            return $this->json(['error' => true, 'message' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        }
+    }
+
 
 #[Route('/user/{id}', name: 'delete_user', methods: ['DELETE'])]
     public function deleteUser(Request $request, $id): JsonResponse
