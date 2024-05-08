@@ -18,6 +18,8 @@ use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use App\Entity\Quote;
 use App\Repository\QuoteRepository;
+use TCPDF; 
+
 
 
 
@@ -280,5 +282,71 @@ public function getAllQuotes(Request $request): JsonResponse
         ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
     }
 }
+
+#[Route('/quote/{id}/download', name: 'download_quote_pdf', methods: ['GET'])]
+public function downloadQuotePdf(Request $request, int $id): Response
+{
+    try {
+        $dataMiddellware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddellware) == 'boolean') {
+            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+        }
+        $user = $dataMiddellware;
+
+        $quote = $this->quoteRepository->find($id);
+
+        if (!$quote) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => 'Devis non trouvé.',
+            ], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $firstName = $user->getFirstName();
+        $lastName = $user->getLastName();
+
+        $authorName = $firstName . ' ' . $lastName;
+        // Créer un nouvel objet TCPDF
+        $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+        // Configuration du document PDF
+        $pdf->SetCreator(PDF_CREATOR);
+        $pdf->SetAuthor($authorName); // Nom complet de l'utilisateur comme auteur
+        $pdf->SetTitle('Devis: ' . $quote->getTitle());
+        $pdf->SetSubject('Devis');
+        $pdf->SetKeywords('Devis, PDF');
+
+        // Ajouter une page
+        $pdf->AddPage();
+
+        // Contenu du devis (vous pouvez personnaliser cela selon vos besoins)
+        $html = '<h1>' . $quote->getTitle() . '</h1>';
+        $html .= '<p><strong>Description:</strong> ' . $quote->getDescription() . '</p>';
+        $html .= '<p><strong>Montant:</strong> ' . $quote->getAmount() . '</p>';
+
+        // Informations sur l'utilisateur
+        $html .= '<h2>Informations sur l\'utilisateur:</h2>';
+        $html .= '<p><strong>Nom complet:</strong> ' . $user->getFirstName() . ' ' . $user->getLastName() . '</p>';
+        $html .= '<p><strong>Email:</strong> ' . $user->getEmail() . '</p>';
+
+        // Écrire le contenu dans le PDF
+        $pdf->writeHTML($html, true, false, true, false, '');
+
+        // Nom du fichier PDF à télécharger
+        $fileName = 'quote_' . $quote->getId() . '.pdf';
+
+        // Renvoyer le PDF en réponse
+        return new Response($pdf->Output($fileName, 'D'), Response::HTTP_OK, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    } catch (\Exception $e) {
+        return new JsonResponse([
+            'error' => true,
+            'message' => 'Une erreur est survenue lors du téléchargement du devis en PDF : ' . $e->getMessage(),
+        ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+    }
+}
+
 
 } 

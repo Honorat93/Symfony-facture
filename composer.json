@@ -12,6 +12,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^3.1",
         "lexik/jwt-authentication-bundle": "^2.21",
+        "symfony/asset": "7.0.*",
         "symfony/console": "7.0.*",
         "symfony/dotenv": "7.0.*",
         "symfony/flex": "^2",
@@ -19,8 +20,13 @@
         "symfony/runtime": "7.0.*",
         "symfony/security-bundle": "7.0.*",
         "symfony/serializer": "7.0.*",
+        "symfony/twig-bundle": "7.0.*",
         "symfony/validator": "7.0.*",
-        "symfony/yaml": "7.0.*"
+        "symfony/yaml": "7.0.*",
+        "tecnickcom/tcpdf": "^6.7",
+        "twbs/bootstrap": "^5.3",
+        "twig/extra-bundle": "^2.12|^3.0",
+        "twig/twig": "^2.12|^3.0"
     },
     "require-dev": {
         "symfony/maker-bundle": "^1.59"
