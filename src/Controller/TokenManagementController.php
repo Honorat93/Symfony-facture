@@ -23,28 +23,30 @@ class TokenManagementController extends AbstractController
         $this->userRepository = $userRepository;
     }
 
-    public function checkToken(Request $request)
-    {
 
-        if ($request->headers->has('Authorization')) {
-            $data = explode(" ", $request->headers->get('Authorization'));
-            if (count($data) == 2) {
-                $token = $data[1];
-                try {
-                    $dataToken = $this->jwtProvider->load($token);
-                    if ($dataToken->isVerified()) {
-                        $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["username"]]);
-                        return ($user) ? $user : false;
-                    }
-                } catch (\Throwable $th) {
-                    return false;
+
+    public function checkToken(Request $request)
+{
+    if ($request->headers->has('Authorization')) {
+        $data = explode(" ", $request->headers->get('Authorization'));
+        if (count($data) == 2) {
+            $token = $data[1];
+            try {
+                $dataToken = $this->jwtProvider->load($token);
+                if ($dataToken && $dataToken->isVerified()) {
+                    $user = $this->userRepository->findOneBy(['email' => $dataToken->getPayload()['username']]);
+                    return $user;
                 }
+            } catch (\Throwable $th) {
+                // Log the error for debugging purposes
+                error_log('Error verifying JWT token: ' . $th->getMessage());
+                return false;
             }
-        } else {
-            return true;
         }
-        return false;
     }
+    // No Authorization header or invalid token format
+    return null;
+}
 
     public function sendJsonErrorToken($nullToken): array
     {
