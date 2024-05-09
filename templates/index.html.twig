@@ -1,9 +1,133 @@
-{# templates/home/index.html.twig #}
-
 {% extends 'base.html.twig' %}
 
 {% block title %}Accueil{% endblock %}
 
 {% block body %}
+    <div style="background-color: #f2f2f2; padding: 20px; max-width: 200px; margin-right: auto; margin-left: 0; height: 100vh;">
+        <img src="{{ asset('images/logo.png') }}" alt="Logo" style="width: 100px; height: 100px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
+        <button onclick="window.location.href='{{ path('get_all_users') }}'" style="margin-bottom: 10px; width: 100%; box-sizing: border-box;" class="btn btn-primary">Liste des Utilisateurs</button>
+        <button style="margin-bottom: 10px; width: 100%; box-sizing: border-box;" class="btn btn-primary">Devis</button>
+        <button style="margin-bottom: 10px; width: 100%; box-sizing: border-box; margin-top: 60vh;" class="btn btn-primary">Deconnexion</button>
+    </div>
+
+    <!-- Boutons pour manipuler les utilisateurs -->
+    <div style="position: fixed; top: 0; right: 0; margin-top: 10px; ">
+        <button type="button" class="btn btn-primary btn-lg" style="margin-right: 40px;">Créer user</button>
+        <button type="button" class="btn btn-primary btn-lg" style="margin-right: 40px;">Modifier user</button>
+        <button type="button" class="btn btn-primary btn-lg" style="margin-right: 40px;">Supprimer user</button>
+        <button type="button" class="btn btn-primary btn-lg" style="margin-right: 300px;">Lire user</button>  
+
+    <!-- Tableau -->
+    <table class="table", style="margin-top: 100px;">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Fistname</th>
+                <th scope="col">Lastname</th>
+                <th scope="col">Email</th>
+                <th scope="col">Genre</th>
+                <th scope="col">RGPD</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            <tr>
+                <th scope="row">1</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+            <tr>
+                <th scope="row">2</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+            <tr>
+                <th scope="row">3</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+                        <tr>
+                <th scope="row">3</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+                        <tr>
+                <th scope="row">3</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+                        <tr>
+                <th scope="row">3</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+                        <tr>
+                <th scope="row">3</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+                        <tr>
+                <th scope="row">3</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+                        <tr>
+                <th scope="row">3</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+                        <tr>
+                <th scope="row">3</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+                        <tr>
+                <th scope="row">3</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+                        <tr>
+                <th scope="row">3</th>
+                <td>Roma</td>
+                <td>SEDOGO</td>
+                <td>roma@gmail.com</td>
+                <td>H</td>
+                <td>true</td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
 
 {% endblock %}

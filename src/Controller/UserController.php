@@ -19,8 +19,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 
-
-
 class UserController extends AbstractController
 {
     private $userRepository;
@@ -52,6 +50,7 @@ class UserController extends AbstractController
     {
         return $this->render('register.html.twig');
     }
+    
 
     #[Route('/login', name: 'login_form', methods: ['GET'])]
     public function showLoginForm(): Response
@@ -133,17 +132,6 @@ class UserController extends AbstractController
 
             return new RedirectResponse($this->generateUrl('login_user'));
 
-            return $this->json([
-                'success' => true,
-                'message' => 'L\'tilisateur a bien été créé avec succès.',
-                'user' => [
-                    'firstname' => $user->getFirstName(),
-                    'lastname' => $user->getLastName(),
-                    'email' => $user->getEmail(),
-                    'genre' => $user->getGenre(),
-                    'rgpd' => $user->getRgpd(),
-                ],
-            ], Response::HTTP_CREATED);
         }catch (\Exception $e) {
             return new JsonResponse([
                 'error' => 'Error: ' . $e->getMessage(),
@@ -157,14 +145,14 @@ class UserController extends AbstractController
         try {
             $email = $request->request->get('email');
             $password = $request->request->get('password');
-
+    
             if ($email === null || $password === null) {
                 return new JsonResponse([
                     'error' => true,
                     'message' => 'Email/password manquants.',
                 ], JsonResponse::HTTP_BAD_REQUEST);
             }
-
+    
             $emailRegex = '/^\S+@\S+\.\S+$/';
             if (!preg_match($emailRegex, $email)) {
                 return new JsonResponse([
@@ -172,7 +160,7 @@ class UserController extends AbstractController
                     'message' => "Le format de l'email est invalide.",
                 ], JsonResponse::HTTP_BAD_REQUEST);
             }
-
+    
             $passwordRegex = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/';
             if (!preg_match($passwordRegex, $password)) {
                 return new JsonResponse([
@@ -180,44 +168,28 @@ class UserController extends AbstractController
                     'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimum.",
                 ], JsonResponse::HTTP_FORBIDDEN);
             }
-
+    
             $user = $this->userRepository->findOneBy(['email' => $email]);
-
-            if (!$user) {
+    
+            if (!$user || !$this->passwordEncoder->isPasswordValid($user, $password)) {
                 return new JsonResponse([
                     'error' => true,
                     'message' => 'Email/password incorrect',
                 ], JsonResponse::HTTP_BAD_REQUEST);
             }
-
-
-            if (!$this->passwordEncoder->isPasswordValid($user, $password)) {
-                throw new BadCredentialsException('Email/password incorrect');
-            }
-
-            
+    
             $token = $jwtManager->create($user);
-
             return new RedirectResponse($this->generateUrl('homepage'));
+           
 
-            return $this->json([
-                'error' => false,
-                'message' => "L'utilisateur a été authentifié avec succès",
-                'user' => [
-                    'firstname' => $user->getFirstName(),
-                    'lastname' => $user->getLastName(),
-                    'email' => $user->getEmail(),
-                
-                ],
-                'token' => $token,
-            ]);
-        } catch (\Exception $e) {
+           //return new JsonResponse(['token' => $token]);
+        }catch (\Exception $e) {
             return new JsonResponse([
                 'error' => 'Error: ' . $e->getMessage(),
             ], JsonResponse::HTTP_NOT_FOUND);
         }
     }
-
+    
     /*#[Route('/user', name: 'update', methods: 'POST')]
     public function update(Request $request): JsonResponse
     {
