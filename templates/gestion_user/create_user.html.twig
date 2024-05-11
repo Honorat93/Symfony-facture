@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block inscription %}Inscription{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Style pour le titre */
+        h1 {
+            text-align: center;
+        }
+
+        /* Style pour le formulaire */
+        form {
+            margin: 20px auto;
+            width: 300px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        /* Style pour les étiquettes */
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Style pour les champs de saisie */
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+    </style>
+{% endblock %}
+
+{% block body %}
+    <h1>Register</h1>
+    <form action="{{ path('create_user') }}" method="POST">
+        <div>
+            <label for="firstname">First Name:</label>
+            <input type="text" id="firstname" name="firstname" required>
+        </div>
+        <div>
+            <label for="lastname">Last Name:</label>
+            <input type="text" id="lastname" name="lastname" required>
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div>
+            <label for="genre">Genre:</label>
+            <select id="genre" name="genre" required>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+            </select>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div>
+            <input type="checkbox" id="rgpd" name="rgpd" required>
+            <label for="rgpd">I agree to the terms and conditions</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Register</button>
+    </form>
+{% endblock %}

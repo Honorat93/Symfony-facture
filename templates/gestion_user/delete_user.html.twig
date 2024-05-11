@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Supprimer utilisateur{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <div class="card mt-5">
+                    <div class="card-body">
+                        <h1 class="card-title">Supprimer utilisateur</h1>
+                        <p class="card-text">Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+                        <form action="{{ path('delete_user', {'id': user.id}) }}" method="post">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

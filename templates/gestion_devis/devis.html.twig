@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil des Devis{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Accueil des Devis</h1>
+
+        <!-- Boutons d'action -->
+        <div class="mb-3">
+            <a href="{{ path('create_quote') }}" class="btn btn-primary">Créer Devis</a>
+            <a href="#" class="btn btn-success">Modifier Devis</a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteQuoteModal">Supprimer Devis</button>
+            <a href="#" class="btn btn-info">Lire Devis</a>
+        </div>
+
+        <!-- Liste des Devis -->
+        <div class="card">
+            <div class="card-header">
+                Liste des Devis
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for quote in quotes %}
+                        <li class="list-group-item">
+                            <span class="fw-bold">Titre:</span> {{ quote.title }}<br>
+                            <span class="fw-bold">Description:</span> {{ quote.description }}<br>
+                            <span class="fw-bold">Montant:</span> {{ quote.amount }}<br>
+                            <span class="fw-bold">Créé le:</span> {{ quote.createdAt|date('Y-m-d H:i:s') }}<br>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de suppression de devis -->
+    <div class="modal fade" id="deleteQuoteModal" tabindex="-1" aria-labelledby="deleteQuoteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteQuoteModalLabel">Supprimer Devis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir supprimer ce devis ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <a href="#" class="btn btn-danger">Supprimer</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        // Vous pouvez ajouter votre code JavaScript ici
+    </script>
+{% endblock %}

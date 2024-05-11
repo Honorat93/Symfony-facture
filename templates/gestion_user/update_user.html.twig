@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Utilisateur{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Style pour le titre */
+        h1 {
+            text-align: center;
+        }
+
+        /* Style pour le formulaire */
+        form {
+            margin: 20px auto;
+            width: 300px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        /* Style pour les étiquettes */
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Style pour les champs de saisie */
+        input[type="text"],
+        input[type="email"],
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+    </style>
+{% endblock %}
+
+{% block body %}
+    <h1>Modifier Utilisateur</h1>
+    <form action="{{ path('update_user', {'id': user.id}) }}" method="post">
+        <div>
+            <label for="firstname">Prénom:</label>
+            <input type="text" id="firstname" name="firstname" value="{{ user.firstname }}" required>
+        </div>
+        <div>
+            <label for="lastname">Nom:</label>
+            <input type="text" id="lastname" name="lastname" value="{{ user.lastname }}" required>
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" required>
+        </div>
+        <div>
+            <label for="genre">Genre:</label>
+            <select id="genre" name="genre" required>
+                <option value="homme" {% if user.genre == 'homme' %} selected {% endif %}>Homme</option>
+                <option value="femme" {% if user.genre == 'femme' %} selected {% endif %}>Femme</option>
+                <option value="autre" {% if user.genre == 'autre' %} selected {% endif %}>Autre</option>
+            </select>
+        </div>
+        <div>
+            <input type="checkbox" id="rgpd" name="rgpd" {% if user.rgpd %} checked {% endif %}>
+            <label for="rgpd">I agree to the terms and conditions</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Modifier</button>
+    </form>
+{% endblock %}
