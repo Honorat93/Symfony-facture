@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+    <!-- Contenu spécifique à votre modèle -->
+    <div style="background-color: #f2f2f2; padding: 20px; max-width: 200px; margin-right: auto; margin-left: 0; height: 100vh;">
+        <img src="{{ asset('images/logo.png') }}" alt="Logo" style="width: 100px; height: 100px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
+        <button onclick="window.location.href='{{ path('get_all_users') }}'" style="margin-bottom: 10px; width: 100%; box-sizing: border-box;" class="btn btn-primary">Liste des Utilisateurs</button>
+       <button onclick="window.location.href='{{ path('quote_home') }}'" style="margin-bottom: 10px; width: 100%; box-sizing: border-box;" class="btn btn-primary">Devis</button>
+        <button style="margin-bottom: 10px; width: 100%; box-sizing: border-box; margin-top: 60vh;" class="btn btn-primary">Deconnexion</button>
+    </div>
+
+    <!-- Boutons pour manipuler les utilisateurs -->
+    <div style="position: fixed; top: 0; right: 0; margin-top: 10px; ">
+        <button onclick="window.location.href='{{ path('create') }}'" type="button" class="btn btn-primary btn-lg" style="margin-right: 40px;">Créer user</button>
+                <!-- Bouton pour mettre à jour un utilisateur -->
+        <button type="button" class="btn btn-primary btn-lg" id="updateUserButtonModal" data-bs-toggle="modal" data-bs-target="#updateUserModal" style="margin-right: 40px;">Mettre à jour user</button>
+        <!-- Bouton pour supprimer un utilisateur -->
+<button type="button" class="btn btn-primary btn-lg" id="deleteUserButton" data-bs-toggle="modal" data-bs-target="#deleteUserModal" style="margin-right: 40px;">Supprimer user</button>
+        <!-- Bouton pour lire un utilisateur -->
+        <button type="button" class="btn btn-primary btn-lg" id="searchUserButton" data-bs-toggle="modal" data-bs-target="#readUserModal" style="margin-right: 300px;">Lire user</button>
+    </div>
+
+    <!-- Modale pour lire un utilisateur -->
+    <div class="modal fade" id="readUserModal" tabindex="-1" role="dialog" aria-labelledby="readUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="readUserModalLabel">Lire un utilisateur</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Entrez l'ID de l'utilisateur :</p>
+                    <input type="text" id="userIdInput" class="form-control" placeholder="Entrez l'ID de l'utilisateur">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="readUserButton">Lire</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale pour supprimer un utilisateur -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" role="dialog" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteUserModalLabel">Supprimer un utilisateur</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Entrez l'ID de l'utilisateur à supprimer :</p>
+                <input type="text" id="deleteUserIdInput" class="form-control" placeholder="Entrez l'ID de l'utilisateur">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="deleteUserButtonConfirm">Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Modale pour mettre à jour un utilisateur -->
+    <div class="modal fade" id="updateUserModal" tabindex="-1" role="dialog" aria-labelledby="updateUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateUserModalLabel">Mettre à jour un utilisateur</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Entrez l'ID de l'utilisateur à modifier :</p>
+                    <input type="text" id="updateUserIdInput" class="form-control" placeholder="Entrez l'ID de l'utilisateur">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="updateUserButton">Mettre à jour</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block javascripts %}
+    <script>
+        // Code JavaScript pour gérer le clic sur le bouton "Lire"
+        $(document).ready(function() {
+            $('#readUserButton').click(function() {
+                var userId = $('#userIdInput').val().trim();
+
+                if (userId === '') {
+                    alert("Veuillez entrer l'ID de l'utilisateur.");
+                    return;
+                }
+
+                // Vérifie si l'ID est un nombre et s'il est non vide
+                if (!userId || isNaN(userId)) {
+                    alert("Veuillez entrer un nombre valide pour l'ID de l'utilisateur.");
+                    return;
+                }
+
+                // Rediriger vers la page get_user.html.twig avec les informations de l'utilisateur
+                window.location.href = '/user/' + userId;
+            });
+        });
+
+        $(document).ready(function() {
+    $('#updateUserButton').click(function() {
+        var userId = $('#updateUserIdInput').val().trim();
+
+        if (userId === '') {
+            alert("Veuillez entrer l'ID de l'utilisateur à modifier.");
+            return;
+        }
+
+                        // Vérifie si l'ID est un nombre et s'il est non vide
+                if (!userId || isNaN(userId)) {
+                    alert("Veuillez entrer un nombre valide pour l'ID de l'utilisateur.");
+                    return;
+                }
+
+        // Redirection vers la méthode updateUser avec l'ID de l'utilisateur
+        window.location.href = '/update/' + userId;
+    });
+});
+
+    $(document).ready(function() {
+        $('#deleteUserButtonConfirm').click(function() {
+            var userId = $('#deleteUserIdInput').val().trim();
+
+            if (userId === '') {
+                alert("Veuillez entrer l'ID de l'utilisateur à supprimer.");
+                return;
+            }
+
+            // Vérifie si l'ID est un nombre et s'il est non vide
+            if (!userId || isNaN(userId)) {
+                alert("Veuillez entrer un nombre valide pour l'ID de l'utilisateur.");
+                return;
+            }
+
+            // Appeler la méthode de suppression d'utilisateur avec l'ID de l'utilisateur
+            window.location.href = '/delete/' + userId;
+        });
+    });
+
+    </script>
+    {% endblock %}
+{% endblock %}

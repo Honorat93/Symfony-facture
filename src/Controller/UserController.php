@@ -45,25 +45,84 @@ class UserController extends AbstractController
         $this->tokenVerifier = $tokenVerifier;
     }
 
-        #[Route('/', name: 'register_form')]
-    public function showRegistrationForm(Request $request): Response
+
+    #[Route('/create', name: 'create')]
+    public function create(Request $request): Response
     {
-        return $this->render('register.html.twig');
+
+        $dataMiddellware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddellware) == 'boolean') {
+            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $user = $dataMiddellware;
+
+        return $this->render('gestion_user/reate_user.html.twig');
+    }
+
+    #[Route('/update/{id}', name: 'modif_user')]
+    public function modif(Request $request, $id): Response
+    {
+        try {
+            $user = $this->userRepository->find($id);
+    
+            if (!$user) {
+                throw $this->createNotFoundException('Utilisateur non trouvé.');
+            }
+    
+            return $this->render('gestion_user/update_user.html.twig', [
+                'user' => $user,
+            ]);
+        } catch (\Exception $e) {
+            // Gérer l'exception et afficher une page d'erreur
+            return $this->render('gestion_user/error.html.twig', [
+                'message' => 'Une erreur est survenue : ' . $e->getMessage(),
+            ]);
+        }
+    }
+    
+    #[Route('/delete/{id}', name: 'suppress_user')]
+    public function suppress(Request $request, $id): Response
+    {
+        try {
+            $user = $this->userRepository->find($id);
+    
+            if (!$user) {
+                throw $this->createNotFoundException('Utilisateur non trouvé.');
+            }
+    
+            return $this->render('gestion_user/delete_user.html.twig', [
+                'user' => $user,
+            ]);
+        } catch (\Exception $e) {
+            // Gérer l'exception et afficher une page d'erreur
+            return $this->render('gestion_user/error.html.twig', [
+                'message' => 'Une erreur est survenue : ' . $e->getMessage(),
+            ]);
+        }
     }
     
 
     #[Route('/login', name: 'login_form', methods: ['GET'])]
     public function showLoginForm(): Response
     {
-        return $this->render('login.html.twig');
+        return $this->render('gestion_user/login.html.twig');
     }
 
     #[Route('/home', name: 'homepage')]
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        return $this->render('index.html.twig');
+        $dataMiddellware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddellware) == 'boolean') {
+            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $user = $dataMiddellware;
+        return $this->render('gestion_user/index.html.twig', [
+            'user' => $user,
+        ]);
     }
-    
+
     #[Route('/register', name: 'create_user', methods: 'POST')]
     public function createUser(Request $request): Response
     {
@@ -139,6 +198,10 @@ class UserController extends AbstractController
         }
     }
 
+    
+
+
+
     #[Route('/login', name: 'login_user', methods: 'POST')]
     public function login(Request $request, JWTTokenManagerInterface $jwtManager): Response
     {
@@ -179,10 +242,10 @@ class UserController extends AbstractController
             }
     
             $token = $jwtManager->create($user);
-            return new RedirectResponse($this->generateUrl('homepage'));
+            //return new RedirectResponse($this->generateUrl('homepage'));
            
 
-           //return new JsonResponse(['token' => $token]);
+           return new JsonResponse(['token' => $token]);
         }catch (\Exception $e) {
             return new JsonResponse([
                 'error' => 'Error: ' . $e->getMessage(),
@@ -276,18 +339,18 @@ class UserController extends AbstractController
     }
 }*/
 
-#[Route('/user/{id}', name: 'update_user', methods: ['PUT'])]
+#[Route('/user/update/{id}', name: 'update_user', methods: ['POST'])]
     public function updateUser(Request $request, int $id): JsonResponse
     {
         try {
-            $dataMiddleware = $this->tokenVerifier->checkToken($request);
+            /*$dataMiddleware = $this->tokenVerifier->checkToken($request);
             if (gettype($dataMiddleware) === 'boolean') {
                 return $this->json(
                     $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
                     JsonResponse::HTTP_UNAUTHORIZED
                 );
             }
-            $user = $dataMiddleware;
+            $user = $dataMiddleware;*/
 
             if (!$id) {
                 return $this->json([
@@ -312,22 +375,23 @@ class UserController extends AbstractController
             $rgpd = $request->request->get('rgpd');
 
 
-            $additionalParams = array_diff(array_keys($request->request->all()), ['firstname', 'lastname', 'email', 'genre', 'rgpd']);
+         /*   $additionalParams = array_diff(array_keys($request->request->all()), ['firstname', 'lastname', 'email', 'genre', 'rgpd']);
             if (!empty($additionalParams)) {
                 return $this->json([
                     'error' => true,
                     'message' => "Les paramètres fournis sont invalides. Veuillez vérifier les données soumises."
                 ], JsonResponse::HTTP_BAD_REQUEST);
-            }
+            }*/
 
+// Vérifier si l'e-mail est déjà utilisé par un autre utilisateur
+$existingUser = $this->userRepository->findOneBy(['email' => $email]);
 
-            $existingUser = $this->userRepository->findOneBy(['email' => $email]);
-            if ($existingUser) {
-                return new JsonResponse([
-                    'error' => true,
-                    'message' => 'Cet email est déjà utilisé par un autre compte.',
-                ], JsonResponse::HTTP_CONFLICT);
-            }
+if ($existingUser && $existingUser->getId() !== $id) {
+    return new JsonResponse([
+        'error' => true,
+        'message' => 'Cet email est déjà utilisé par un autre compte.',
+    ], JsonResponse::HTTP_CONFLICT);
+}   
 
             if ($firstname !== null) {
                 $user->setFirstName($firstname);
@@ -361,7 +425,7 @@ class UserController extends AbstractController
     }
 
 
-#[Route('/user/{id}', name: 'delete_user', methods: ['DELETE'])]
+    #[Route('/user/{id}', name: 'delete_user', methods: ['POST'])]
     public function deleteUser(Request $request, $id): JsonResponse
     {
         try {
@@ -401,49 +465,45 @@ class UserController extends AbstractController
         }
     }
 
-    #[Route('/user/{id}', name: 'get_user', methods: ['GET'])]
-public function getUserInfo(Request $request, $id): JsonResponse
+#[Route('/user/{id}', name: 'get_user', methods: ['GET'])]
+public function getUserInfo(Request $request, int $id): Response
 {
     try {
 
-        $dataMiddellware = $this->tokenVerifier->checkToken($request);
+     /*   $dataMiddellware = $this->tokenVerifier->checkToken($request);
         if (gettype($dataMiddellware) == 'boolean') {
             return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        $user = $dataMiddellware;
+        $user = $dataMiddellware;*/
         
         $user = $this->userRepository->find($id);
 
        
-        if (!$user) {
-            return new JsonResponse([
-                'error' => true,
-                'message' => 'Utilisateur non trouvé.',
-            ], JsonResponse::HTTP_NOT_FOUND);
-        }
-
-        $userData = [
+        /*$userData = [
             'firstname' => $user->getFirstName(),
             'lastname' => $user->getLastName(),
             'email' => $user->getEmail(),
             'genre' => $user->getGenre(),
-        ];
+        ];*/
 
-        return $this->json([
-            'error' => false,
-            'user' => $userData,
+        if (!$user) {
+            throw new \Exception('Utilisateur non trouvé.');
+        }
+
+        return $this->render('get_user.html.twig', [
+            'user' => $user,
         ]);
     } catch (\Exception $e) {
-        return new JsonResponse([
-            'error' => true,
-            'message' => 'Une erreur est survenue lors de la récupération des informations de l\'utilisateur : ' . $e->getMessage(),
-        ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        return $this->render('error.html.twig', [
+            'message' => 'Une erreur est survenue : ' . $e->getMessage(),
+        ]);
     }
 }
 
+
 #[Route('/users', name: 'get_all_users', methods: ['GET'])]
-public function getAllUsers(Request $request): JsonResponse
+public function getAllUsers(Request $request): Response
 {
     try {
         $dataMiddellware = $this->tokenVerifier->checkToken($request);
@@ -454,31 +514,18 @@ public function getAllUsers(Request $request): JsonResponse
         $user = $dataMiddellware;
 
         $users = $this->userRepository->findAll();
-
-        $formattedUsers = [];
-        foreach ($users as $user) {
-            $formattedUsers[] = [
-                'id' => $user->getId(),
-                'firstname' => $user->getFirstName(),
-                'lastname' => $user->getLastName(),
-                'email' => $user->getEmail(),
-                'genre' => $user->getGenre(),
-                'rgpd' => $user->getRgpd(),
-            ];
-        }
-
-        return $this->json([
-            'error' => false,
-            'users' => $formattedUsers,
-        ]);
-    } catch (\Exception $e) {
-        return new JsonResponse([
-            'error' => true,
-            'message' => 'Une erreur est survenue lors de la récupération des utilisateurs : ' . $e->getMessage(),
-        ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
-    }
+       // Passez les utilisateurs à la vue Twig pour affichage
+       return $this->render('get_all_users.html.twig', [
+        'users' => $users,
+    ]);
+} catch (\Exception $e) {
+    // Gérez les erreurs
+    return new JsonResponse([
+        'error' => true,
+        'message' => 'Une erreur est survenue lors de la récupération des utilisateurs : ' . $e->getMessage(),
+    ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
 }
-
+}
 /*#[Route('/logout', name: 'logout')]
 public function logout()
 {

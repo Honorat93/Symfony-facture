@@ -52,6 +52,17 @@ class QuoteController extends AbstractController
         $this->quoteRepository = $quoteRepository;
     }
 
+    #[Route('/devis', name: 'quote_home')]
+    public function index(Request $request): Response
+    {
+        $dataMiddellware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddellware) == 'boolean') {
+            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $user = $dataMiddellware;
+        return $this->render('gestion_devis/devis.html.twig');
+    }
 
     #[Route('/quote', name: 'create_quote', methods: ['POST'])]
     public function createQuote(Request $request): JsonResponse
