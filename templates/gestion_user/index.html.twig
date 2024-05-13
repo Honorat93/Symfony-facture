@@ -8,7 +8,7 @@
     background-color: #f2f2f2;
     padding: 20px;
     max-width: 200px;
-    margin: 0; /* Modifier cette ligne 
+    margin: 0; /* Modifier cette ligne */
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -169,8 +169,8 @@
 
 {% block javascripts %}
 <script>
+
    $(document).ready(function() {
-    // Code JavaScript pour gérer le clic sur le bouton "Lire"
     $('#readUserButton').click(function() {
         var userId = $('#userIdInput').val().trim();
 
@@ -189,7 +189,6 @@
             type: 'GET',
             success: function(response) {
                 if (response.exists) {
-                    // L'utilisateur existe, rediriger vers la page get_user.html.twig avec les informations de l'utilisateur
                     window.location.href = '/user/' + userId;
                 } else {
                     alert("L'utilisateur avec l'ID spécifié n'existe pas.");
@@ -228,6 +227,7 @@
             return;
         }
 
+
         $.ajax({
             url: '{{ path('check_user_exists', {'id': 'userId'}) }}'.replace('userId', userId),
             type: 'GET',
@@ -243,6 +243,7 @@
             }
         });
     });
+
 
     $('#deleteUserButtonConfirm').click(function() {
         var userId = $('#deleteUserIdInput').val().trim();
