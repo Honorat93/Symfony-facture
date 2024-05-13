@@ -9,7 +9,7 @@
         <!-- Boutons d'action -->
         <div class="text-right mb-3">
             <button onclick="window.location.href='{{ path('quote_create') }}'" class="btn btn-primary" style="margin-right: 10px;">Créer Devis</button>
-            <!-- Ajoutez d'autres boutons d'action ici -->
+            <button onclick="window.location.href='{{ path('homepage') }}'" class="btn btn-primary">Retourner à l'accueil</button>
         </div>
 
         <!-- Liste des devis -->
@@ -20,7 +20,6 @@
                     <div class="card-body">
                         <h5 class="card-title"><span class="blue-text">{{ quote.title }}</span></h5>
                         <p class="card-text"><strong>ID:</strong> {{ quote.id }}</p>
-                        <!-- Ajoutez d'autres informations du devis ici -->
 
                         <!-- Boutons d'action -->
                         <div class="text-right">
@@ -37,7 +36,7 @@
     </div>
 
     <script>
-        // Fonction pour supprimer un devis
+
         function deleteQuote(quoteId, deleteUrl) {
             if (confirm("Voulez-vous vraiment supprimer ce devis ?")) {
                 fetch(deleteUrl, {
@@ -45,7 +44,6 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        // Actualiser la page ou faire toute autre action nécessaire
                         location.reload();
                     } else {
                         console.error('Erreur lors de la suppression du devis.');
@@ -57,7 +55,7 @@
             }
         }
 
-        // Attacher un gestionnaire d'événements à chaque bouton de suppression
+
         document.querySelectorAll('.delete-quote-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const quoteId = this.getAttribute('data-quote-id');
@@ -66,15 +64,11 @@
             });
         });
 
-        // Fonction pour télécharger un devis
+
         function downloadQuote(quoteId) {
-            // Vous pouvez implémenter le téléchargement ici
-            // ou simplement rediriger l'utilisateur vers une route qui génère et retourne le PDF
-            // En supposant que vous avez une route nommée 'download_quote_pdf'
             window.location.href = "{{ path('download_quote_pdf', {'id': 'quoteId'}) }}".replace('quoteId', quoteId);
         }
 
-        // Attacher un gestionnaire d'événements à chaque bouton de téléchargement
         document.querySelectorAll('.download-quote-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const quoteId = this.getAttribute('data-quote-id');

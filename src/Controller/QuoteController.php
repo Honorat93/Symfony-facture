@@ -338,7 +338,7 @@ public function deleteQuote(Request $request, int $id): JsonResponse
 public function getAllQuotes(Request $request): Response
 {
     try {
-
+        
         $dataMiddleware = $this->tokenVerifier->checkToken($request);
         if (gettype($dataMiddleware) === 'boolean') {
             return $this->json(
@@ -378,15 +378,11 @@ public function getAllQuotes(Request $request): Response
 public function downloadQuotePdf(Request $request, int $id): Response
 {
     try {
-        
-        $dataMiddleware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddleware) === 'boolean') {
-            return $this->json(
-                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
-                JsonResponse::HTTP_UNAUTHORIZED
-            );
+        $dataMiddellware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddellware) == 'boolean') {
+            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
         }
-        $user = $dataMiddleware;
+        $user = $dataMiddellware;
 
         $quote = $this->quoteRepository->find($id);
 
@@ -452,6 +448,4 @@ public function downloadQuotePdf(Request $request, int $id): Response
     }
 }
  
-
-
 } 

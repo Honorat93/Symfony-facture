@@ -32,9 +32,8 @@
     margin-top: auto;
 }
 
-/* Ajout de styles pour le tableau */
 .user-table-container {
-    margin-top: 10px; /* Ajustez la marge selon vos besoins */
+    margin-top: 10px; /
     display: flex;
     justify-content: center;
     align-items: center;
@@ -62,7 +61,7 @@
     </div>
 
     <!-- Tableau des utilisateurs -->
-    <div class="user-table-container" style="width: 100%; margin-top: 40px;"> <!-- Ajout de la marge supérieure -->
+    <div class="user-table-container" style="width: 100%; margin-top: 40px;"> 
         <table class="table user-table" style="width: 100%;">
             <thead>
                 <tr>
@@ -170,9 +169,8 @@
 
 {% block javascripts %}
 <script>
-// Code JavaScript pour gérer le clic sur le bouton "Lire"
+
    $(document).ready(function() {
-    // Code JavaScript pour gérer le clic sur le bouton "Lire"
     $('#readUserButton').click(function() {
         var userId = $('#userIdInput').val().trim();
 
@@ -181,19 +179,16 @@
             return;
         }
 
-        // Vérifie si l'ID est un nombre et s'il est non vide
         if (!userId || isNaN(userId) || userId <= 0) {
             alert("Veuillez entrer un ID d'utilisateur valide.");
             return;
         }
 
-        // Envoyer une requête AJAX pour vérifier l'existence de l'utilisateur
         $.ajax({
             url: '{{ path('check_user_exists', {'id': 'userId'}) }}'.replace('userId', userId),
             type: 'GET',
             success: function(response) {
                 if (response.exists) {
-                    // L'utilisateur existe, rediriger vers la page get_user.html.twig avec les informations de l'utilisateur
                     window.location.href = '/user/' + userId;
                 } else {
                     alert("L'utilisateur avec l'ID spécifié n'existe pas.");
@@ -205,12 +200,10 @@
         });
     });
 
-    // Fonction pour recharger la page lorsque vous revenez à la page d'accueil
     function reloadHomePage() {
         window.location.reload();
     }
 
-    // Exécuter la fonction reloadHomePage lorsque vous revenez à la page d'accueil
     window.addEventListener('pageshow', function(event) {
         var historyTraversal = event.persisted || 
                                (typeof window.performance != 'undefined' && 
@@ -220,20 +213,6 @@
         }
     });
 
-    // Fonction pour recharger la page lorsque vous revenez à la page d'accueil
-    function reloadHomePage() {
-        window.location.reload();
-    }
-
-    // Exécuter la fonction reloadHomePage lorsque vous revenez à la page d'accueil
-    window.addEventListener('pageshow', function(event) {
-        var historyTraversal = event.persisted || 
-                               (typeof window.performance != 'undefined' && 
-                                window.performance.navigation.type === 2);
-        if (historyTraversal) {
-            reloadHomePage();
-        }
-    });
 
     $('#updateUserButton').click(function() {
         var userId = $('#updateUserIdInput').val().trim();
@@ -243,19 +222,17 @@
             return;
         }
 
-        // Vérifie si l'ID est un nombre et s'il est non vide
         if (!userId || isNaN(userId) || userId <= 0) {
             alert("Veuillez entrer un ID d'utilisateur valide.");
             return;
         }
 
-        // Envoyer une requête AJAX pour vérifier l'existence de l'utilisateur
+
         $.ajax({
             url: '{{ path('check_user_exists', {'id': 'userId'}) }}'.replace('userId', userId),
             type: 'GET',
             success: function(response) {
                 if (response.exists) {
-                    // L'utilisateur existe, rediriger vers la méthode updateUser avec l'ID de l'utilisateur
                     window.location.href = '/update/' + userId;
                 } else {
                     alert("L'utilisateur avec l'ID spécifié n'existe pas.");
@@ -267,7 +244,7 @@
         });
     });
 
-    // Gérer le clic sur le bouton de confirmation de suppression
+
     $('#deleteUserButtonConfirm').click(function() {
         var userId = $('#deleteUserIdInput').val().trim();
         if (userId === '') {

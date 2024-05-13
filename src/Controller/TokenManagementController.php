@@ -36,9 +36,9 @@ class TokenManagementController extends AbstractController
                 return false;
             }
         } else {
-            return true; // Pas de token dans le cookie, probablement non authentifié
+            return true; 
         }
-        return false; // Si quelque chose ne va pas, retourne false par défaut
+        return false; 
     }
 
     public function sendJsonErrorToken($nullToken): array
