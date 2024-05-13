@@ -49,103 +49,121 @@ class UserController extends AbstractController
         $this->emailRegistrationService = $emailRegistrationService;
     }
 
-    #[Route("/user/check/{id}", name: "check_user_exists", methods: ['GET'])]
-    public function checkUserExists($id)
-    {
-        $user = $this->userRepository->find($id);
+   // Vérifie si un utilisateur existe en fonction de son ID
+   #[Route("/user/check/{id}", name: "check_user_exists", methods: ['GET'])]
+   public function checkUserExists($id)
+   {
+       // Recherche de l'utilisateur dans le référentiel (repository) par son ID
+       $user = $this->userRepository->find($id);
 
-        // Retournez une réponse JSON indiquant si l'utilisateur existe ou non
-        return new JsonResponse(['exists' => ($user !== null)]);
-    }
+       // Retourne une réponse JSON indiquant si l'utilisateur existe ou non
+       return new JsonResponse(['exists' => ($user !== null)]);
+   }
 
-    #[Route('/logout', name: 'app_logout')]
-    public function logout(Request $request): Response
-    {
-        $dataMiddleware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddleware) === 'boolean') {
-            return $this->json(
-                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
-                JsonResponse::HTTP_UNAUTHORIZED
-            );
-        }
-        $user = $dataMiddleware;
-        // Supprimer le cookie JWT du navigateur de l'utilisateur
-        $response = new RedirectResponse($this->generateUrl('login_user'));
-        $response->headers->clearCookie('jwt_token');
-        
-        return $response;
-    }
+   // Déconnexion de l'utilisateur
+   #[Route('/logout', name: 'app_logout')]
+   public function logout(Request $request): Response
+   {
+       // Vérification du token JWT pour l'authentification
+       $dataMiddleware = $this->tokenVerifier->checkToken($request);
+       if (gettype($dataMiddleware) === 'boolean') {
+           // En cas d'erreur de token, renvoie une réponse JSON d'erreur d'authentification
+           return $this->json(
+               $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+               JsonResponse::HTTP_UNAUTHORIZED
+           );
+       }
+       $user = $dataMiddleware;
 
+       // Supprime le cookie JWT du navigateur de l'utilisateur
+       $response = new RedirectResponse($this->generateUrl('login_user'));
+       $response->headers->clearCookie('jwt_token');
+       
+       return $response;
+   }
 
-    #[Route('/create_user', name: 'user_create')]
-    public function create(Request $request): Response
-    {
-        $dataMiddleware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddleware) === 'boolean') {
-            return $this->json(
-                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
-                JsonResponse::HTTP_UNAUTHORIZED
-            );
-        }
-        $user = $dataMiddleware;
+   // Affiche le formulaire de création d'utilisateur
+   #[Route('/create_user', name: 'user_create')]
+   public function create(Request $request): Response
+   {
+       // Vérification du token JWT pour l'authentification
+       $dataMiddleware = $this->tokenVerifier->checkToken($request);
+       if (gettype($dataMiddleware) === 'boolean') {
+           // En cas d'erreur de token, renvoie une réponse JSON d'erreur d'authentification
+           return $this->json(
+               $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+               JsonResponse::HTTP_UNAUTHORIZED
+           );
+       }
+       $user = $dataMiddleware;
 
-        return $this->render('gestion_user/create_user.html.twig');
-    }
+       // Affiche le formulaire de création d'utilisateur
+       return $this->render('gestion_user/create_user.html.twig');
+   }
 
-    #[Route('/inscription', name: 'user_register')]
-    public function register(Request $request): Response
-    {
+   // Affiche le formulaire d'inscription
+   #[Route('/inscription', name: 'user_register')]
+   public function register(Request $request): Response
+   {
+       // Affiche le formulaire d'inscription
+       return $this->render('gestion_user/register.html.twig');
+   }
 
-        return $this->render('gestion_user/register.html.twig');
-    }
+   // Affiche le formulaire de modification d'utilisateur
+   #[Route('/update/{id}', name: 'modif_user')]
+   public function modif(Request $request, $id): Response
+   {
+       try {
+           // Vérification du token JWT pour l'authentification
+           $dataMiddleware = $this->tokenVerifier->checkToken($request);
+           if (gettype($dataMiddleware) === 'boolean') {
+               // En cas d'erreur de token, renvoie une réponse JSON d'erreur d'authentification
+               return $this->json(
+                   $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                   JsonResponse::HTTP_UNAUTHORIZED
+               );
+           }
+           $user = $dataMiddleware;
 
-    #[Route('/update/{id}', name: 'modif_user')]
-    public function modif(Request $request, $id): Response
-    {
-        try {
-            $dataMiddleware = $this->tokenVerifier->checkToken($request);
-            if (gettype($dataMiddleware) === 'boolean') {
-                return $this->json(
-                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
-                    JsonResponse::HTTP_UNAUTHORIZED
-                );
-            }
-            $user = $dataMiddleware;
- 
-            return $this->render('gestion_user/update_user.html.twig', [
-                'user' => $user,
-            ]);
-        } catch (\Exception $e) {
-            // Gérer l'exception et afficher une page d'erreur
-            return $this->render('gestion_user/error.html.twig', [
-                'message' => 'Une erreur est survenue : ' . $e->getMessage(),
-            ]);
-        }
-    }
-    #[Route('/delete/{id}', name: 'suppress_user')]
-    public function suppress(Request $request, $id): Response
-    {
-        try {
+           // Affiche le formulaire de modification d'utilisateur
+           return $this->render('gestion_user/update_user.html.twig', [
+               'user' => $user,
+           ]);
+       } catch (\Exception $e) {
+           // Gère l'exception et affiche une page d'erreur
+           return $this->render('gestion_user/error.html.twig', [
+               'message' => 'Une erreur est survenue : ' . $e->getMessage(),
+           ]);
+       }
+   }
 
-            $dataMiddleware = $this->tokenVerifier->checkToken($request);
-            if (gettype($dataMiddleware) === 'boolean') {
-                return $this->json(
-                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
-                    JsonResponse::HTTP_UNAUTHORIZED
-                );
-            }
-            $user = $dataMiddleware;
+   // Affiche le formulaire de suppression d'utilisateur
+   #[Route('/delete/{id}', name: 'suppress_user')]
+   public function suppress(Request $request, $id): Response
+   {
+       try {
+           // Vérification du token JWT pour l'authentification
+           $dataMiddleware = $this->tokenVerifier->checkToken($request);
+           if (gettype($dataMiddleware) === 'boolean') {
+               // En cas d'erreur de token, renvoie une réponse JSON d'erreur d'authentification
+               return $this->json(
+                   $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                   JsonResponse::HTTP_UNAUTHORIZED
+               );
+           }
+           $user = $dataMiddleware;
 
-            return $this->render('gestion_user/delete_user.html.twig', [
-                'user' => $user,
-            ]);
-        } catch (\Exception $e) {
-            // Gérer l'exception et afficher une page d'erreur
-            return $this->render('gestion_user/error.html.twig', [
-                'message' => 'Une erreur est survenue : ' . $e->getMessage(),
-            ]);
-        }
-    }
+           // Affiche le formulaire de suppression d'utilisateur
+           return $this->render('gestion_user/delete_user.html.twig', [
+               'user' => $user,
+           ]);
+       } catch (\Exception $e) {
+           // Gère l'exception et affiche une page d'erreur
+           return $this->render('gestion_user/error.html.twig', [
+               'message' => 'Une erreur est survenue : ' . $e->getMessage(),
+           ]);
+       }
+   }
 
     #[Route('/login', name: 'login_form', methods: ['GET'])]
     public function showLoginForm(): Response
@@ -431,20 +449,21 @@ class UserController extends AbstractController
     
 
 
-
-#[Route('/user/update/{id}', name: 'update_user', methods: ['POST'])]
+    #[Route('/user/update/{id}', name: 'update_user', methods: ['POST'])]
     public function updateUser(Request $request, int $id): Response
     {
         try {
-        $dataMiddleware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddleware) === 'boolean') {
-            return $this->json(
-                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
-                JsonResponse::HTTP_UNAUTHORIZED
-            );
-        }
-        $user = $dataMiddleware;
+            // Vérifie le token de l'utilisateur
+            $dataMiddleware = $this->tokenVerifier->checkToken($request);
+            if (gettype($dataMiddleware) === 'boolean') {
+                return $this->json(
+                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                    JsonResponse::HTTP_UNAUTHORIZED
+                );
+            }
+            $user = $dataMiddleware;
 
+            // Vérifie si l'ID de l'utilisateur est présent dans la requête
             if (!$id) {
                 return $this->json([
                     'error' => true,
@@ -452,46 +471,41 @@ class UserController extends AbstractController
                 ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
+            // Récupère l'utilisateur à mettre à jour
             $user = $this->userRepository->find($id);
 
+            // Vérifie si l'utilisateur existe
             if (!$user) {
                 return $this->json([
                     'error' => true,
-                    'message' => "Aucun utilisateur trouvé correspndant à l'id fourni."
+                    'message' => "Aucun utilisateur trouvé correspondant à l'ID fourni."
                 ], JsonResponse::HTTP_NOT_FOUND);
             }
 
+            // Récupère les données de la requête
             $firstname = $request->request->get('firstname');
             $lastname = $request->request->get('lastname');
             $email = $request->request->get('email');
             $genre = $request->request->get('genre');
             $rgpd = $request->request->get('rgpd');
 
+            // Vérifie si l'e-mail est déjà utilisé par un autre utilisateur
+            $existingUser = $this->userRepository->findOneBy(['email' => $email]);
 
-         /*   $additionalParams = array_diff(array_keys($request->request->all()), ['firstname', 'lastname', 'email', 'genre', 'rgpd']);
-            if (!empty($additionalParams)) {
-                return $this->json([
+            if ($existingUser && $existingUser->getId() !== $id) {
+                return new JsonResponse([
                     'error' => true,
-                    'message' => "Les paramètres fournis sont invalides. Veuillez vérifier les données soumises."
-                ], JsonResponse::HTTP_BAD_REQUEST);
-            }*/
+                    'message' => 'Cet email est déjà utilisé par un autre compte.',
+                ], JsonResponse::HTTP_CONFLICT);
+            }
 
-// Vérifier si l'e-mail est déjà utilisé par un autre utilisateur
-$existingUser = $this->userRepository->findOneBy(['email' => $email]);
-
-if ($existingUser && $existingUser->getId() !== $id) {
-    return new JsonResponse([
-        'error' => true,
-        'message' => 'Cet email est déjà utilisé par un autre compte.',
-    ], JsonResponse::HTTP_CONFLICT);
-}   
-
+            // Met à jour les champs de l'utilisateur si les données sont fournies
             if ($firstname !== null) {
                 $user->setFirstName($firstname);
             }
 
             if ($lastname !== null) {
-                $user->setlastName($lastname);
+                $user->setLastName($lastname);
             }
 
             if ($email !== null) {
@@ -506,18 +520,22 @@ if ($existingUser && $existingUser->getId() !== $id) {
                 $user->setRgpd($rgpd);
             }
 
+            // Enregistre les modifications dans la base de données
             $this->entityManager->flush();
 
+            // Redirige vers la page d'accueil après la mise à jour
             return $this->redirectToRoute('homepage');
+
+            // Retourne une réponse JSON indiquant le succès de la mise à jour
             return $this->json([
                 'error' => false,
                 'message' => "Utilisateur mis à jour avec succès."
             ], JsonResponse::HTTP_OK);
         } catch (\Exception $e) {
+            // Gère les erreurs
             return $this->json(['error' => true, 'message' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
-
 
     #[Route('/user/{id}', name: 'delete_user', methods: ['POST'])]
     public function deleteUser(Request $request, $id): JsonResponse
@@ -561,77 +579,68 @@ if ($existingUser && $existingUser->getId() !== $id) {
         }
     }
 
-#[Route('/user/{id}', name: 'get_user', methods: ['GET'])]
-public function getUserInfo(Request $request, int $id): Response
-{
-    try {
+ #[Route('/user/{id}', name: 'get_user', methods: ['GET'])]
+    public function getUserInfo(Request $request, int $id): Response
+    {
+        try {
+            // Vérifiez le jeton d'authentification
+            $dataMiddleware = $this->tokenVerifier->checkToken($request);
+            if (gettype($dataMiddleware) === 'boolean') {
+                return $this->json(
+                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                    JsonResponse::HTTP_UNAUTHORIZED
+                );
+            }
+            // Utilisateur authentifié
+            $user = $dataMiddleware;
 
-        $dataMiddleware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddleware) === 'boolean') {
-            return $this->json(
-                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
-                JsonResponse::HTTP_UNAUTHORIZED
-            );
+            // Récupérer l'utilisateur par son ID
+            $user = $this->userRepository->find($id);
+
+            if (!$user) {
+                throw new \Exception('Utilisateur non trouvé.');
+            }
+
+            // Rendu de la vue Twig avec les données de l'utilisateur
+            return $this->render('gestion_user/get_user.html.twig', [
+                'user' => $user,
+            ]);
+        } catch (\Exception $e) {
+            // Gestion des erreurs
+            return $this->render('gestion_user/error.html.twig', [
+                'message' => 'Une erreur est survenue : ' . $e->getMessage(),
+            ]);
         }
-        $user = $dataMiddleware;;
-        
-        $user = $this->userRepository->find($id);
-
-       
-        /*$userData = [
-            'firstname' => $user->getFirstName(),
-            'lastname' => $user->getLastName(),
-            'email' => $user->getEmail(),
-            'genre' => $user->getGenre(),
-        ];*/
-
-        if (!$user) {
-            throw new \Exception('Utilisateur non trouvé.');
-        }
-
-        return $this->render('gestion_user/get_user.html.twig', [
-            'user' => $user,
-        ]);
-    } catch (\Exception $e) {
-        return $this->render('gestion_user/error.html.twig', [
-            'message' => 'Une erreur est survenue : ' . $e->getMessage(),
-        ]);
     }
-}
 
+    #[Route('/users', name: 'get_all_users', methods: ['GET'])]
+    public function getAllUsers(Request $request): Response
+    {
+        try {
+            // Vérifiez le jeton d'authentification
+            $dataMiddleware = $this->tokenVerifier->checkToken($request);
+            if (gettype($dataMiddleware) === 'boolean') {
+                return $this->json(
+                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                    JsonResponse::HTTP_UNAUTHORIZED
+                );
+            }
+            // Utilisateur authentifié
+            $user = $dataMiddleware;
 
-#[Route('/users', name: 'get_all_users', methods: ['GET'])]
-public function getAllUsers(Request $request): Response
-{
-    try {
-        $dataMiddleware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddleware) === 'boolean') {
-            return $this->json(
-                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
-                JsonResponse::HTTP_UNAUTHORIZED
-            );
+            // Récupérer tous les utilisateurs
+            $users = $this->userRepository->findAll();
+
+            // Rendu de la vue Twig avec la liste des utilisateurs
+            return $this->render('gestion_user/get_all_users.html.twig', [
+                'users' => $users,
+            ]);
+        } catch (\Exception $e) {
+            // Gestion des erreurs
+            return new JsonResponse([
+                'error' => true,
+                'message' => 'Une erreur est survenue lors de la récupération des utilisateurs : ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
-        $user = $dataMiddleware;
-
-        $users = $this->userRepository->findAll();
-       // Passez les utilisateurs à la vue Twig pour affichage
-       return $this->render('gestion_user/get_all_users.html.twig', [
-        'users' => $users,
-    ]);
-} catch (\Exception $e) {
-    // Gérez les erreurs
-    return new JsonResponse([
-        'error' => true,
-        'message' => 'Une erreur est survenue lors de la récupération des utilisateurs : ' . $e->getMessage(),
-    ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
-}
-}
-/*#[Route('/logout', name: 'logout')]
-public function logout()
-{
-        // Retourne un JsonResponse avec les données appropriées
-        return new JsonResponse([
-            'message' => 'Traitement effectué avec succès',
-        ]);
-    }*/
+    }
 }

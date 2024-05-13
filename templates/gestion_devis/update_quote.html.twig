@@ -5,15 +5,14 @@
 {% block stylesheets %}
     {{ parent() }}
     <style>
-        /* Styles pour le formulaire */
         .container {
             max-width: 500px;
-            margin: 0 auto; /* Pour centrer horizontalement */
+            margin: 0 auto; 
             padding: 20px;
             background-color: #f8f9fa;
             border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 50px; /* Ajout de marge en haut pour centrer verticalement */
+            margin-top: 50px; 
         }
 
         .form-group {
@@ -22,7 +21,7 @@
 
         label {
             font-weight: bold;
-            color: #343a40; /* Couleur du texte */
+            color: #343a40; 
         }
 
         input[type="text"],
@@ -30,25 +29,25 @@
         textarea {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ced4da; /* Couleur de la bordure */
+            border: 1px solid #ced4da; 
             border-radius: 4px;
-            background-color: #fff; /* Couleur de fond */
-            color: #495057; /* Couleur du texte */
+            background-color: #fff; 
+            color: #495057; 
             transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         }
 
         input[type="text"]:focus,
         input[type="number"]:focus,
         textarea:focus {
-            border-color: #80bdff; /* Couleur de la bordure lorsqu'il est en focus */
+            border-color: #80bdff; 
             outline: 0;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Ombre portée */
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); 
         }
 
         button[type="submit"] {
             padding: 10px 20px;
-            background-color: #007bff; /* Couleur de fond */
-            color: #fff; /* Couleur du texte */
+            background-color: #007bff; 
+            color: #fff; 
             border: none;
             border-radius: 4px;
             cursor: pointer;
@@ -56,13 +55,13 @@
         }
 
         button[type="submit"]:hover {
-            background-color: #0056b3; /* Couleur de fond au survol */
+            background-color: #0056b3; 
         }
     </style>
 {% endblock %}
 
 {% block body %}
-    <div class="container"> {# Pas besoin de la classe text-center pour centrer verticalement #}
+    <div class="container"> 
         <h1 class="text-center">Modifier Devis</h1>
         <form method="post" action="{{ path('update_quote', {'id': quote.id}) }}">
             {# Utilisez un champ hidden pour la méthode PUT #}
@@ -80,7 +79,7 @@
                 <label for="amount">Montant</label>
                 <input type="number" class="form-control" id="amount" name="amount" value="{{ quote.amount }}">
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Modifier</button> {# Utilisation de btn-block pour étendre le bouton sur toute la largeur #}
+            <button type="submit" class="btn btn-primary btn-block">Modifier</button> 
         </form>
     </div>
 {% endblock %}

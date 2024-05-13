@@ -37,7 +37,7 @@
     </div>
 
     <script>
-        // Fonction pour supprimer un devis
+
         function deleteQuote(quoteId, deleteUrl) {
             if (confirm("Voulez-vous vraiment supprimer ce devis ?")) {
                 fetch(deleteUrl, {
@@ -45,7 +45,6 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        // Actualiser la page ou faire toute autre action nécessaire
                         location.reload();
                     } else {
                         console.error('Erreur lors de la suppression du devis.');
@@ -57,7 +56,7 @@
             }
         }
 
-        // Attacher un gestionnaire d'événements à chaque bouton de suppression
+
         document.querySelectorAll('.delete-quote-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const quoteId = this.getAttribute('data-quote-id');
@@ -66,15 +65,11 @@
             });
         });
 
-        // Fonction pour télécharger un devis
+
         function downloadQuote(quoteId) {
-            // Vous pouvez implémenter le téléchargement ici
-            // ou simplement rediriger l'utilisateur vers une route qui génère et retourne le PDF
-            // En supposant que vous avez une route nommée 'download_quote_pdf'
             window.location.href = "{{ path('download_quote_pdf', {'id': 'quoteId'}) }}".replace('quoteId', quoteId);
         }
 
-        // Attacher un gestionnaire d'événements à chaque bouton de téléchargement
         document.querySelectorAll('.download-quote-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const quoteId = this.getAttribute('data-quote-id');
