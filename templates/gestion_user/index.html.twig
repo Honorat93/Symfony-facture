@@ -2,25 +2,93 @@
 
 {% block title %}Accueil{% endblock %}
 
+{% block stylesheets %}
+    <style>
+.container {
+    background-color: #f2f2f2;
+    padding: 20px;
+    max-width: 200px;
+    margin: 0; /* Modifier cette ligne */
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+}
+
+.button-group button {
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.logout {
+    margin-top: auto;
+}
+
+/* Ajout de styles pour le tableau */
+.user-table-container {
+    margin-top: 10px; /* Ajustez la marge selon vos besoins */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+    </style>
+{% endblock %}
+
 {% block body %}
-    <!-- Contenu spécifique à votre modèle -->
-    <div style="background-color: #f2f2f2; padding: 20px; max-width: 200px; margin-right: auto; margin-left: 0; height: 100vh;">
-        <img src="{{ asset('images/logo.png') }}" alt="Logo" style="width: 100px; height: 100px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
-        <button onclick="window.location.href='{{ path('get_all_users') }}'" style="margin-bottom: 10px; width: 100%; box-sizing: border-box;" class="btn btn-primary">Liste des Utilisateurs</button>
-       <button onclick="window.location.href='{{ path('quote_home') }}'" style="margin-bottom: 10px; width: 100%; box-sizing: border-box;" class="btn btn-primary">Devis</button>
-        <button style="margin-bottom: 10px; width: 100%; box-sizing: border-box; margin-top: 60vh;" class="btn btn-primary">Deconnexion</button>
+    <div class="container">
+        <img src="{{ asset('images/logo.png') }}" alt="" class="logo">
+        <div class="button-group">
+            <button onclick="window.location.href='{{ path('get_all_users') }}'" class="btn btn-primary">Liste des Utilisateurs</button>
+            <button onclick="window.location.href='{{ path('quote_home') }}'" class="btn btn-primary">Devis</button>
+        </div>
+        <button onclick="window.location.href='{{ path('app_logout') }}'" class="btn btn-primary logout">Déconnexion</button>
     </div>
 
+<div style="position: fixed; top: 0; right: 0; width: calc(100% - 210px); margin-top: 10px; display: flex; flex-direction: column; align-items: flex-end;">
     <!-- Boutons pour manipuler les utilisateurs -->
-    <div style="position: fixed; top: 0; right: 0; margin-top: 10px; ">
-        <button onclick="window.location.href='{{ path('create') }}'" type="button" class="btn btn-primary btn-lg" style="margin-right: 40px;">Créer user</button>
-                <!-- Bouton pour mettre à jour un utilisateur -->
-        <button type="button" class="btn btn-primary btn-lg" id="updateUserButtonModal" data-bs-toggle="modal" data-bs-target="#updateUserModal" style="margin-right: 40px;">Mettre à jour user</button>
-        <!-- Bouton pour supprimer un utilisateur -->
-<button type="button" class="btn btn-primary btn-lg" id="deleteUserButton" data-bs-toggle="modal" data-bs-target="#deleteUserModal" style="margin-right: 40px;">Supprimer user</button>
-        <!-- Bouton pour lire un utilisateur -->
-        <button type="button" class="btn btn-primary btn-lg" id="searchUserButton" data-bs-toggle="modal" data-bs-target="#readUserModal" style="margin-right: 300px;">Lire user</button>
+    <div style="width: 100%; display: flex; justify-content: flex-end;">
+        <button onclick="window.location.href='{{ path('user_create') }}'" type="button" class="btn btn-primary btn-lg" style="margin-right: 10px; width: 24%;">Créer user</button>
+        <button type="button" class="btn btn-primary btn-lg" id="updateUserButtonModal" data-bs-toggle="modal" data-bs-target="#updateUserModal" style="margin-right: 10px; width: 24%;">Mettre à jour user</button>
+        <button type="button" class="btn btn-primary btn-lg btn-danger" id="deleteUserButton" data-bs-toggle="modal" data-bs-target="#deleteUserModal" style="margin-right: 10px; width: 24%;">Supprimer user</button>
+        <button type="button" class="btn btn-primary btn-lg" id="searchUserButton" data-bs-toggle="modal" data-bs-target="#readUserModal" style="width: 24%;">Lire user</button>
     </div>
+
+    <!-- Tableau des utilisateurs -->
+    <div class="user-table-container" style="width: 100%; margin-top: 40px;"> <!-- Ajout de la marge supérieure -->
+        <table class="table user-table" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nom</th>
+                    <th scope="col">Prénom</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Genre</th>
+                    <th scope="col">RGPD</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.lastname }}</td>
+                        <td>{{ user.firstname }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.genre }}</td>
+                        <td>{{ user.rgpd ? 'Oui' : 'Non' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
     <!-- Modale pour lire un utilisateur -->
     <div class="modal fade" id="readUserModal" tabindex="-1" role="dialog" aria-labelledby="readUserModalLabel" aria-hidden="true">
@@ -41,25 +109,24 @@
         </div>
     </div>
 
-    <!-- Modale pour supprimer un utilisateur -->
-<div class="modal fade" id="deleteUserModal" tabindex="-1" role="dialog" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteUserModalLabel">Supprimer un utilisateur</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Entrez l'ID de l'utilisateur à supprimer :</p>
-                <input type="text" id="deleteUserIdInput" class="form-control" placeholder="Entrez l'ID de l'utilisateur">
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" id="deleteUserButtonConfirm">Supprimer</button>
+   <!-- Modale pour supprimer un utilisateur -->
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" role="dialog" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteUserModalLabel">Supprimer un utilisateur</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Entrez l'ID de l'utilisateur à supprimer :</p>
+                    <input type="text" id="deleteUserIdInput" class="form-control" placeholder="Entrez l'ID de l'utilisateur">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="deleteUserButtonConfirm">Supprimer</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
 
     <!-- Modale pour mettre à jour un utilisateur -->
     <div class="modal fade" id="updateUserModal" tabindex="-1" role="dialog" aria-labelledby="updateUserModalLabel" aria-hidden="true">
@@ -80,30 +147,94 @@
         </div>
     </div>
 
-    {% block javascripts %}
-    <script>
-        // Code JavaScript pour gérer le clic sur le bouton "Lire"
-        $(document).ready(function() {
-            $('#readUserButton').click(function() {
-                var userId = $('#userIdInput').val().trim();
+    <!-- Modale pour confirmation de suppression -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmation de suppression</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button class="btn btn-danger" id="confirmDeleteButton">Supprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                if (userId === '') {
-                    alert("Veuillez entrer l'ID de l'utilisateur.");
-                    return;
+
+
+{% block javascripts %}
+<script>
+// Code JavaScript pour gérer le clic sur le bouton "Lire"
+   $(document).ready(function() {
+    // Code JavaScript pour gérer le clic sur le bouton "Lire"
+    $('#readUserButton').click(function() {
+        var userId = $('#userIdInput').val().trim();
+
+        if (userId === '') {
+            alert("Veuillez entrer l'ID de l'utilisateur.");
+            return;
+        }
+
+        // Vérifie si l'ID est un nombre et s'il est non vide
+        if (!userId || isNaN(userId) || userId <= 0) {
+            alert("Veuillez entrer un ID d'utilisateur valide.");
+            return;
+        }
+
+        // Envoyer une requête AJAX pour vérifier l'existence de l'utilisateur
+        $.ajax({
+            url: '{{ path('check_user_exists', {'id': 'userId'}) }}'.replace('userId', userId),
+            type: 'GET',
+            success: function(response) {
+                if (response.exists) {
+                    // L'utilisateur existe, rediriger vers la page get_user.html.twig avec les informations de l'utilisateur
+                    window.location.href = '/user/' + userId;
+                } else {
+                    alert("L'utilisateur avec l'ID spécifié n'existe pas.");
                 }
-
-                // Vérifie si l'ID est un nombre et s'il est non vide
-                if (!userId || isNaN(userId)) {
-                    alert("Veuillez entrer un nombre valide pour l'ID de l'utilisateur.");
-                    return;
-                }
-
-                // Rediriger vers la page get_user.html.twig avec les informations de l'utilisateur
-                window.location.href = '/user/' + userId;
-            });
+            },
+            error: function(xhr, status, error) {
+                alert("Une erreur s'est produite lors de la vérification de l'existence de l'utilisateur.");
+            }
         });
+    });
 
-        $(document).ready(function() {
+    // Fonction pour recharger la page lorsque vous revenez à la page d'accueil
+    function reloadHomePage() {
+        window.location.reload();
+    }
+
+    // Exécuter la fonction reloadHomePage lorsque vous revenez à la page d'accueil
+    window.addEventListener('pageshow', function(event) {
+        var historyTraversal = event.persisted || 
+                               (typeof window.performance != 'undefined' && 
+                                window.performance.navigation.type === 2);
+        if (historyTraversal) {
+            reloadHomePage();
+        }
+    });
+
+    // Fonction pour recharger la page lorsque vous revenez à la page d'accueil
+    function reloadHomePage() {
+        window.location.reload();
+    }
+
+    // Exécuter la fonction reloadHomePage lorsque vous revenez à la page d'accueil
+    window.addEventListener('pageshow', function(event) {
+        var historyTraversal = event.persisted || 
+                               (typeof window.performance != 'undefined' && 
+                                window.performance.navigation.type === 2);
+        if (historyTraversal) {
+            reloadHomePage();
+        }
+    });
+
     $('#updateUserButton').click(function() {
         var userId = $('#updateUserIdInput').val().trim();
 
@@ -112,37 +243,64 @@
             return;
         }
 
-                        // Vérifie si l'ID est un nombre et s'il est non vide
-                if (!userId || isNaN(userId)) {
-                    alert("Veuillez entrer un nombre valide pour l'ID de l'utilisateur.");
-                    return;
+        // Vérifie si l'ID est un nombre et s'il est non vide
+        if (!userId || isNaN(userId) || userId <= 0) {
+            alert("Veuillez entrer un ID d'utilisateur valide.");
+            return;
+        }
+
+        // Envoyer une requête AJAX pour vérifier l'existence de l'utilisateur
+        $.ajax({
+            url: '{{ path('check_user_exists', {'id': 'userId'}) }}'.replace('userId', userId),
+            type: 'GET',
+            success: function(response) {
+                if (response.exists) {
+                    // L'utilisateur existe, rediriger vers la méthode updateUser avec l'ID de l'utilisateur
+                    window.location.href = '/update/' + userId;
+                } else {
+                    alert("L'utilisateur avec l'ID spécifié n'existe pas.");
                 }
-
-        // Redirection vers la méthode updateUser avec l'ID de l'utilisateur
-        window.location.href = '/update/' + userId;
-    });
-});
-
-    $(document).ready(function() {
-        $('#deleteUserButtonConfirm').click(function() {
-            var userId = $('#deleteUserIdInput').val().trim();
-
-            if (userId === '') {
-                alert("Veuillez entrer l'ID de l'utilisateur à supprimer.");
-                return;
+            },
+            error: function(xhr, status, error) {
+                alert("Une erreur s'est produite lors de la vérification de l'existence de l'utilisateur.");
             }
-
-            // Vérifie si l'ID est un nombre et s'il est non vide
-            if (!userId || isNaN(userId)) {
-                alert("Veuillez entrer un nombre valide pour l'ID de l'utilisateur.");
-                return;
-            }
-
-            // Appeler la méthode de suppression d'utilisateur avec l'ID de l'utilisateur
-            window.location.href = '/delete/' + userId;
         });
     });
 
-    </script>
-    {% endblock %}
+    // Gérer le clic sur le bouton de confirmation de suppression
+    $('#deleteUserButtonConfirm').click(function() {
+        var userId = $('#deleteUserIdInput').val().trim();
+        if (userId === '') {
+            alert("Veuillez entrer l'ID de l'utilisateur à supprimer.");
+            return;
+        }
+        if (!userId || isNaN(userId) || userId <= 0) {
+            alert("Veuillez entrer un ID d'utilisateur valide.");
+            return;
+        }
+        $('#confirmDeleteModal').modal('show');
+    });
+
+    $('#confirmDeleteButton').click(function() {
+        var userId = $('#deleteUserIdInput').val().trim();
+        $.ajax({
+            url: '{{ path('delete_user', {'id': 'userId'}) }}'.replace('userId', userId),
+            type: 'POST',
+            data: {
+                _method: 'DELETE'
+            },
+            success: function(response) {
+                alert('L\'utilisateur a été supprimé avec succès.');
+                window.location.reload();
+            },
+            error: function(xhr, status, error) {
+                alert('Une erreur s\'est produite lors de la suppression de l\'utilisateur.');
+            }
+        });
+    });
+});
+
+</script>
+{% endblock %}
+
 {% endblock %}

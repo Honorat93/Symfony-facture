@@ -59,9 +59,8 @@
         <div>
             <label for="genre">Genre:</label>
             <select id="genre" name="genre" required>
-                <option value="homme" {% if user.genre == 'homme' %} selected {% endif %}>Homme</option>
-                <option value="femme" {% if user.genre == 'femme' %} selected {% endif %}>Femme</option>
-                <option value="autre" {% if user.genre == 'autre' %} selected {% endif %}>Autre</option>
+                <option value="H" {% if user.genre == 'H' %} selected {% endif %}>H</option>
+                <option value="F" {% if user.genre == 'F' %} selected {% endif %}>F</option>
             </select>
         </div>
         <div>

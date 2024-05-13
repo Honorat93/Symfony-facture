@@ -7,14 +7,31 @@
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <h1 class="text-center mb-4">Informations Utilisateur</h1>
-                <div class="card">
+                <div class="card bg-primary text-white">
                     <div class="card-body">
                         <h5 class="card-title">Informations Utilisateur</h5>
-                        <p class="card-text"><strong>Prénom:</strong> {{ user.firstname }}</p>
-                        <p class="card-text"><strong>Nom:</strong> {{ user.lastname }}</p>
-                        <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
-                        <p class="card-text"><strong>Genre:</strong> {{ user.genre }}</p>
-                        <!-- Ajoutez les autres champs de votre utilisateur ici -->
+                        <form>
+                            <div class="mb-3">
+                                <label for="inputFirstname" class="form-label">Prénom</label>
+                                <input type="text" class="form-control" id="inputFirstname" value="{{ user.firstname }}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="inputLastname" class="form-label">Nom</label>
+                                <input type="text" class="form-control" id="inputLastname" value="{{ user.lastname }}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="inputEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="inputEmail" value="{{ user.email }}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="inputGenre" class="form-label">Genre</label>
+                                <input type="text" class="form-control" id="inputGenre" value="{{ user.genre }}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="inputRgpd" class="form-label">Rgpd</label>
+                                <input type="text" class="form-control" id="inputRgpd" value="{% if user.rgpd %}Oui{% else %}Non{% endif %}" readonly>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

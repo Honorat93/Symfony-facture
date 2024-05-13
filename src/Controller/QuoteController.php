@@ -19,6 +19,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use App\Entity\Quote;
 use App\Repository\QuoteRepository;
 use TCPDF; 
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 
 
@@ -52,91 +53,19 @@ class QuoteController extends AbstractController
         $this->quoteRepository = $quoteRepository;
     }
 
-    #[Route('/devis', name: 'quote_home')]
-    public function index(Request $request): Response
-    {
-        $dataMiddellware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddellware) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $user = $dataMiddellware;
-        return $this->render('gestion_devis/devis.html.twig');
-    }
-
-    #[Route('/quote', name: 'create_quote', methods: ['POST'])]
-    public function createQuote(Request $request): JsonResponse
+    #[Route('/update_quote/{id}', name: 'quote_update', methods: ['GET'])]
+    public function update(Request $request, int $id): Response
     {
         try {
-
-            $dataMiddellware = $this->tokenVerifier->checkToken($request);
-            if (gettype($dataMiddellware) == 'boolean') {
-                return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+            $dataMiddleware = $this->tokenVerifier->checkToken($request);
+            if (gettype($dataMiddleware) === 'boolean') {
+                return $this->json(
+                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                    JsonResponse::HTTP_UNAUTHORIZED
+                );
             }
-            $user = $dataMiddellware;
-
-            // Récupérer les données du formulaire encodé en URL
-            $data = $request->request->all();
-
-            if (empty($data['title']) || empty($data['description']) || empty($data['amount'])) {
-                return $this->json([
-                    'error' => true,
-                    'message' => 'Le titre, la description et le montant sont requis.',
-                ], JsonResponse::HTTP_BAD_REQUEST);
-            }
-            // Récupérer les champs du formulaire
-            $title = $data['title'];
-            $description = $data['description'];
-            $amount = $data['amount'];
-
-            if (!is_numeric($amount)) {
-                return $this->json([
-                    'error' => true,
-                    'message' => 'Le montant doit être un nombre.',
-                ], JsonResponse::HTTP_BAD_REQUEST);
-            }
-    
-            // Créer un nouvel objet Quote
-            $quote = new Quote();
-            $quote->setTitle($title)
-                ->setDescription($description)
-                ->setAmount($amount)
-                ->setCreatedAt(new \DateTime())
-                ->setUser($user);
-
-            $this->entityManager->persist($quote);
-            $this->entityManager->flush();
-
-            return $this->json([
-                'success' => true,
-                'message' => 'Devis créé avec succès.',
-                'quote' => [
-                    'id' => $quote->getId(),
-                    'title' => $quote->getTitle(),
-                    'description' => $quote->getDescription(),
-                    'amount' => $quote->getAmount(),
-                    'created_at' => $quote->getCreatedAt()->format('Y-m-d H:i:s'),
-                ],
-            ], Response::HTTP_CREATED);
-        } catch (\Exception $e) {
-            return $this->json([
-                'error' => true,
-                'message' => 'Erreur lors de la création du devis : ' . $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    #[Route('/quote/{id}', name: 'read_quote', methods: ['GET'])]
-    public function readQuote(Request $request, int $id): JsonResponse
-    {
-        try {
-            $dataMiddellware = $this->tokenVerifier->checkToken($request);
-            if (gettype($dataMiddellware) == 'boolean') {
-                return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
-            }
-    
-            $user = $dataMiddellware;
-            
+            $user = $dataMiddleware;
+            // Récupérer le devis à modifier
             $quote = $this->quoteRepository->find($id);
     
             if (!$quote) {
@@ -146,15 +75,168 @@ class QuoteController extends AbstractController
                 ], JsonResponse::HTTP_NOT_FOUND);
             }
     
+            // Afficher le formulaire de modification du devis
+            return $this->render('gestion_devis/update_quote.html.twig', [
+                'quote' => $quote,
+            ]);
+        } catch (\Exception $e) {
             return $this->json([
-                'success' => true,
-                'quote' => [
-                    'id' => $quote->getId(),
-                    'title' => $quote->getTitle(),
-                    'description' => $quote->getDescription(),
-                    'amount' => $quote->getAmount(),
-                    'created_at' => $quote->getCreatedAt()->format('Y-m-d H:i:s'),
-                ],
+                'error' => true,
+                'message' => 'Une erreur est survenue lors de la récupération du devis à modifier : ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    
+
+    #[Route('/create_quote', name: 'quote_create')]
+    public function creation(Request $request): Response
+    {
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
+        }
+        $user = $dataMiddleware;
+        return $this->render('gestion_devis/create_quote.html.twig');
+    }
+
+    #[Route('/devis', name: 'quote_home')]
+    public function index(Request $request): Response
+    {
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
+        }
+        $user = $dataMiddleware;
+
+        $quotes = $this->quoteRepository->findAll(); // Exemple, ajustez selon votre logique
+
+        // Rendre la vue avec les devis récupérés
+        return $this->render('gestion_devis/devis.html.twig', [
+            'quotes' => $quotes,
+        ]);
+    }
+        
+
+
+
+    #[Route('/quote', name: 'create_quote', methods: ['POST'])]
+public function createQuote(Request $request): Response
+{
+    try {
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
+        }
+        $user = $dataMiddleware;
+
+        // Récupérer les données du formulaire encodé en URL
+        $data = $request->request->all();
+
+        // Vérifier si l'email de l'utilisateur est présent dans les données
+        if (empty($data['user_email'])) {
+            return $this->json([
+                'error' => true,
+                'message' => "L'e-mail de l'utilisateur est requis pour attribuer le devis.",
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Récupérer l'e-mail de l'utilisateur
+        $userEmail = $data['user_email'];
+
+        // Rechercher l'utilisateur dans le repository par son e-mail
+        $user = $this->userRepository->findOneByEmail($userEmail);
+
+        // Vérifier si l'utilisateur existe
+        if (!$user) {
+            return $this->json([
+                'error' => true,
+                'message' => "Aucun utilisateur trouvé avec cet e-mail.",
+            ], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        // Vérifier les autres champs du formulaire
+        if (empty($data['title']) || empty($data['description']) || empty($data['amount'])) {
+            return $this->json([
+                'error' => true,
+                'message' => 'Le titre, la description et le montant sont requis.',
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        
+        // Récupérer les champs du formulaire
+        $title = $data['title'];
+        $description = $data['description'];
+        $amount = $data['amount'];
+
+        if (!is_numeric($amount)) {
+            return $this->json([
+                'error' => true,
+                'message' => 'Le montant doit être un nombre.',
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Créer un nouvel objet Quote
+        $quote = new Quote();
+        $quote->setTitle($title)
+            ->setDescription($description)
+            ->setAmount($amount)
+            ->setCreatedAt(new \DateTime())
+            ->setUser($user);
+
+        // Maintenant que vous avez l'utilisateur, vous pouvez récupérer son nom et son prénom
+        $firstName = $user->getFirstName();
+        $lastName = $user->getLastName();
+
+        // Vous pouvez maintenant utiliser $firstName et $lastName comme vous le souhaitez, par exemple :
+        $authorName = $firstName . ' ' . $lastName;
+
+        // Enregistrer le devis
+        $this->entityManager->persist($quote);
+        $this->entityManager->flush();
+        
+        return new RedirectResponse($this->generateUrl('quote_home'));
+        
+    } catch (\Exception $e) {
+        // En cas d'erreur, renvoyer une réponse JSON avec un code d'erreur interne du serveur
+        return $this->json([
+            'error' => true,
+            'message' => 'Erreur lors de la création du devis : ' . $e->getMessage(),
+        ], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+}
+    #[Route('/quote/{id}', name: 'read_quote', methods: ['GET'])]
+    public function readQuote(Request $request, int $id): Response
+    {
+        try {
+            $dataMiddleware = $this->tokenVerifier->checkToken($request);
+            if (gettype($dataMiddleware) === 'boolean') {
+                return $this->json(
+                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                    JsonResponse::HTTP_UNAUTHORIZED
+                );
+            }
+            $user = $dataMiddleware;
+            
+            $quote = $this->quoteRepository->find($id);
+    
+            if (!$quote) {
+                return $this->json([
+                    'error' => true,
+                    'message' => 'Devis non trouvé.',
+                ], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            return $this->render('gestion_devis/get_quote.html.twig', [
+                'quote' => $quote,
             ]);
         } catch (\Exception $e) {
             return $this->json([
@@ -164,16 +246,18 @@ class QuoteController extends AbstractController
         }
     }
 
-    #[Route('/quote/{id}', name: 'update_quote', methods: ['PUT'])]
-public function updateQuote(Request $request, int $id): JsonResponse
+    #[Route('/quote/{id}', name: 'update_quote', methods: ['POST'])]
+public function updateQuote(Request $request, int $id): Response
 {
     try {
-        $dataMiddellware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddellware) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
         }
-
-        $user = $dataMiddellware;
+        $user = $dataMiddleware;
 
         $quote = $this->quoteRepository->find($id);
 
@@ -201,17 +285,8 @@ public function updateQuote(Request $request, int $id): JsonResponse
 
         $this->entityManager->flush();
 
-        return $this->json([
-            'success' => true,
-            'message' => 'Devis mis à jour avec succès.',
-            'quote' => [
-                'id' => $quote->getId(),
-                'title' => $quote->getTitle(),
-                'description' => $quote->getDescription(),
-                'amount' => $quote->getAmount(),
-                'created_at' => $quote->getCreatedAt()->format('Y-m-d H:i:s'),
-            ],
-        ]);
+        return $this->redirectToRoute('quote_home');
+
     } catch (\Exception $e) {
         return $this->json([
             'error' => true,
@@ -224,12 +299,15 @@ public function updateQuote(Request $request, int $id): JsonResponse
 public function deleteQuote(Request $request, int $id): JsonResponse
 {
     try {
-        $dataMiddellware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddellware) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
-        }
 
-        $user = $dataMiddellware;
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
+        }
+        $user = $dataMiddleware;
 
         $quote = $this->quoteRepository->find($id);
 
@@ -257,15 +335,18 @@ public function deleteQuote(Request $request, int $id): JsonResponse
 }
 
 #[Route('/quotes', name: 'get_all_quotes', methods: ['GET'])]
-public function getAllQuotes(Request $request): JsonResponse
+public function getAllQuotes(Request $request): Response
 {
     try {
-        $dataMiddellware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddellware) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
-        }
 
-        $user = $dataMiddellware;
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
+        }
+        $user = $dataMiddleware;
 
         $quotes = $this->quoteRepository->findAll();
 
@@ -281,11 +362,10 @@ public function getAllQuotes(Request $request): JsonResponse
             ];
         }
 
-        // Réponse JSON avec la liste des devis
-        return $this->json([
-            'error' => false,
+        return $this->render('gestion_devis/get_all_quotes.html.twig', [
             'quotes' => $formattedQuotes,
         ]);
+        
     } catch (\Exception $e) {
         return $this->json([
             'error' => true,
@@ -298,11 +378,15 @@ public function getAllQuotes(Request $request): JsonResponse
 public function downloadQuotePdf(Request $request, int $id): Response
 {
     try {
-        $dataMiddellware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddellware) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+        
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
         }
-        $user = $dataMiddellware;
+        $user = $dataMiddleware;
 
         $quote = $this->quoteRepository->find($id);
 
@@ -310,6 +394,15 @@ public function downloadQuotePdf(Request $request, int $id): Response
             return new JsonResponse([
                 'error' => true,
                 'message' => 'Devis non trouvé.',
+            ], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        // Vérifier si l'utilisateur est associé au devis
+        $user = $quote->getUser();
+        if (!$user) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => 'Utilisateur associé au devis non trouvé.',
             ], JsonResponse::HTTP_NOT_FOUND);
         }
 
@@ -358,6 +451,7 @@ public function downloadQuotePdf(Request $request, int $id): Response
         ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
     }
 }
+ 
 
 
 } 

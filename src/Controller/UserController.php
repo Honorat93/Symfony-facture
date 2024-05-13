@@ -17,9 +17,11 @@ use Symfony\Component\Cache\Adapter\CacheItemPoolInterface;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Cookie;
+use App\Service\EmailRegistrationService;
 
 
-class UserController extends AbstractController
+class UserController extends AbstractController 
 {
     private $userRepository;
     private $entityManager;
@@ -27,15 +29,16 @@ class UserController extends AbstractController
     private $passwordEncoder;
     private $jwtManager;
     private $tokenVerifier;
-    
+    private $emailRegistrationService;
+
     public function __construct(
         UserRepository $userRepository,
         EntityManagerInterface $entityManager,
         SerializerInterface $serializer,
         UserPasswordHasherInterface $passwordEncoder,
         JWTTokenManagerInterface $jwtManager,
-        TokenManagementController $tokenVerifier
-        
+        TokenManagementController $tokenVerifier,
+        EmailRegistrationService $emailRegistrationService
     ) {
         $this->userRepository = $userRepository;
         $this->entityManager = $entityManager;
@@ -43,33 +46,72 @@ class UserController extends AbstractController
         $this->passwordEncoder = $passwordEncoder;
         $this->jwtManager = $jwtManager;
         $this->tokenVerifier = $tokenVerifier;
+        $this->emailRegistrationService = $emailRegistrationService;
+    }
+
+    #[Route("/user/check/{id}", name: "check_user_exists", methods: ['GET'])]
+    public function checkUserExists($id)
+    {
+        $user = $this->userRepository->find($id);
+
+        // Retournez une réponse JSON indiquant si l'utilisateur existe ou non
+        return new JsonResponse(['exists' => ($user !== null)]);
+    }
+
+    #[Route('/logout', name: 'app_logout')]
+    public function logout(Request $request): Response
+    {
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
+        }
+        $user = $dataMiddleware;
+        // Supprimer le cookie JWT du navigateur de l'utilisateur
+        $response = new RedirectResponse($this->generateUrl('login_user'));
+        $response->headers->clearCookie('jwt_token');
+        
+        return $response;
     }
 
 
-    #[Route('/create', name: 'create')]
+    #[Route('/create_user', name: 'user_create')]
     public function create(Request $request): Response
     {
-
-        $dataMiddellware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddellware) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
         }
+        $user = $dataMiddleware;
 
-        $user = $dataMiddellware;
+        return $this->render('gestion_user/create_user.html.twig');
+    }
 
-        return $this->render('gestion_user/reate_user.html.twig');
+    #[Route('/inscription', name: 'user_register')]
+    public function register(Request $request): Response
+    {
+
+        return $this->render('gestion_user/register.html.twig');
     }
 
     #[Route('/update/{id}', name: 'modif_user')]
     public function modif(Request $request, $id): Response
     {
         try {
-            $user = $this->userRepository->find($id);
-    
-            if (!$user) {
-                throw $this->createNotFoundException('Utilisateur non trouvé.');
+            $dataMiddleware = $this->tokenVerifier->checkToken($request);
+            if (gettype($dataMiddleware) === 'boolean') {
+                return $this->json(
+                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                    JsonResponse::HTTP_UNAUTHORIZED
+                );
             }
-    
+            $user = $dataMiddleware;
+ 
             return $this->render('gestion_user/update_user.html.twig', [
                 'user' => $user,
             ]);
@@ -80,17 +122,20 @@ class UserController extends AbstractController
             ]);
         }
     }
-    
     #[Route('/delete/{id}', name: 'suppress_user')]
     public function suppress(Request $request, $id): Response
     {
         try {
-            $user = $this->userRepository->find($id);
-    
-            if (!$user) {
-                throw $this->createNotFoundException('Utilisateur non trouvé.');
+
+            $dataMiddleware = $this->tokenVerifier->checkToken($request);
+            if (gettype($dataMiddleware) === 'boolean') {
+                return $this->json(
+                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                    JsonResponse::HTTP_UNAUTHORIZED
+                );
             }
-    
+            $user = $dataMiddleware;
+
             return $this->render('gestion_user/delete_user.html.twig', [
                 'user' => $user,
             ]);
@@ -101,7 +146,6 @@ class UserController extends AbstractController
             ]);
         }
     }
-    
 
     #[Route('/login', name: 'login_form', methods: ['GET'])]
     public function showLoginForm(): Response
@@ -112,16 +156,52 @@ class UserController extends AbstractController
     #[Route('/home', name: 'homepage')]
     public function index(Request $request): Response
     {
-        $dataMiddellware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddellware) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+        
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
         }
-
-        $user = $dataMiddellware;
+        $user = $dataMiddleware;
+        
+        $users = $this->userRepository->findAll();
         return $this->render('gestion_user/index.html.twig', [
-            'user' => $user,
+            'users' => $users,
         ]);
     }
+
+    #[Route('/email-register', name: 'register_form')]
+    public function registerForm(): Response
+    {
+        return $this->render('gestion_user/registerByEmail.html.twig');
+    }
+
+    #[Route('/register-by-email', name: 'register_by_email', methods: ['POST'])]
+    public function registerByEmail(Request $request, EmailRegistrationService $emailRegistrationService): Response
+    {
+        $user = new User();
+        $form = $this->createForm(RegistrationType::class, $user);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+            $user->setPassword(
+                $this->passwordEncoder->encodePassword($user, $form->get("password")->getData())
+            );
+            $user->setToken($this->generateToken());
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($user);
+            $em->flush();
+            $this->mailer->sendEmail($user->getEmail(), $user->getToken());
+            $this->addFlash("success", "Inscription réussie !");
+        }
+
+        return $this->render('registration/register.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+    
 
     #[Route('/register', name: 'create_user', methods: 'POST')]
     public function createUser(Request $request): Response
@@ -174,7 +254,7 @@ class UserController extends AbstractController
                 ->setRgpd($rgpd)
                 ->setPassword($this->passwordEncoder->hashPassword($user, $password));
 
-                          
+
             if ($genre === 'M') {
                 $user->setGenre('H');
             } elseif ($genre === 'F') {
@@ -191,15 +271,104 @@ class UserController extends AbstractController
 
             return new RedirectResponse($this->generateUrl('login_user'));
 
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => 'Error: ' . $e->getMessage(),
             ], JsonResponse::HTTP_NOT_FOUND);
         }
     }
 
-    
+    #[Route('/create', name: 'create', methods: 'POST')]
+    public function createU(Request $request): Response
+    {
+        try {
 
+
+            $dataMiddleware = $this->tokenVerifier->checkToken($request);
+            if (gettype($dataMiddleware) === 'boolean') {
+                return $this->json(
+                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                    JsonResponse::HTTP_UNAUTHORIZED
+                );
+            }
+            $user = $dataMiddleware;
+
+            $firstname = $request->request->get('firstname');
+            $lastname = $request->request->get('lastname');
+            $email = $request->request->get('email');
+            $genre = $request->request->get('genre');
+            $rgpd = $request->request->get('rgpd');
+            $password = $request->request->get('password');
+
+            $emailRegex = '/^\S+@\S+\.\S+$/';
+            if (!preg_match($emailRegex, $email)) {
+                return new JsonResponse([
+                    'error' => true,
+                    'message' => 'Le format de l\'email est invalide.',
+                ], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $passwordRegex = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/';
+            if (!preg_match($passwordRegex, $password)) {
+                return new JsonResponse([
+                    'error' => true,
+                    'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et 8 caractères minimum.",
+                ], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $existingUser = $this->userRepository->findOneBy(['email' => $email]);
+            if ($existingUser) {
+                return new JsonResponse([
+                    'error' => true,
+                    'message' => 'Cet email est déjà utilisé par un autre compte.',
+                ], JsonResponse::HTTP_CONFLICT);
+            }
+
+
+            if (empty($email) || empty($password)) {
+                return new JsonResponse([
+                    'error' => true,
+                    'message' => 'L\'email et le mot de passe sont obligatoires.',
+                ], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $user = new User();
+            $user->setFirstName($firstname)
+                ->setLastName($lastname)
+                ->setEmail($email)
+                ->setGenre($genre)
+                ->setRgpd($rgpd)
+                ->setPassword($this->passwordEncoder->hashPassword($user, $password));
+
+
+            if ($genre === 'M') {
+                $user->setGenre('H');
+            } elseif ($genre === 'F') {
+                $user->setGenre('F');
+            } else {
+                return new JsonResponse([
+                    'error' => true,
+                    'message' => 'Le genre doit être spécifié M pour homme ou F pour femme.',
+                ], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+
+            return $this->redirectToRoute('homepage');
+
+            // Une fois que l'utilisateur est créé avec succès
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'L\'utilisateur a été créé avec succès.',
+            ], Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            // Gestion des erreurs
+            return new JsonResponse([
+                'error' => 'Error: ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
     #[Route('/login', name: 'login_user', methods: 'POST')]
@@ -208,14 +377,14 @@ class UserController extends AbstractController
         try {
             $email = $request->request->get('email');
             $password = $request->request->get('password');
-    
+
             if ($email === null || $password === null) {
                 return new JsonResponse([
                     'error' => true,
                     'message' => 'Email/password manquants.',
                 ], JsonResponse::HTTP_BAD_REQUEST);
             }
-    
+
             $emailRegex = '/^\S+@\S+\.\S+$/';
             if (!preg_match($emailRegex, $email)) {
                 return new JsonResponse([
@@ -223,7 +392,7 @@ class UserController extends AbstractController
                     'message' => "Le format de l'email est invalide.",
                 ], JsonResponse::HTTP_BAD_REQUEST);
             }
-    
+
             $passwordRegex = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/';
             if (!preg_match($passwordRegex, $password)) {
                 return new JsonResponse([
@@ -231,126 +400,50 @@ class UserController extends AbstractController
                     'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimum.",
                 ], JsonResponse::HTTP_FORBIDDEN);
             }
-    
+
             $user = $this->userRepository->findOneBy(['email' => $email]);
-    
+
             if (!$user || !$this->passwordEncoder->isPasswordValid($user, $password)) {
                 return new JsonResponse([
                     'error' => true,
                     'message' => 'Email/password incorrect',
                 ], JsonResponse::HTTP_BAD_REQUEST);
             }
-    
-            $token = $jwtManager->create($user);
-            //return new RedirectResponse($this->generateUrl('homepage'));
-           
 
-           return new JsonResponse(['token' => $token]);
-        }catch (\Exception $e) {
+            $token = $jwtManager->create($user);
+
+            // Créer un cookie pour stocker le token JWT
+            $cookie = Cookie::create('jwt_token', $token);
+    
+            // Créer une réponse de redirection vers la page d'accueil
+            $response = new RedirectResponse($this->generateUrl('homepage'));
+    
+            // Ajouter le cookie à la réponse
+            $response->headers->setCookie($cookie);
+    
+            return $response;
+        } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => 'Error: ' . $e->getMessage(),
             ], JsonResponse::HTTP_NOT_FOUND);
         }
     }
     
-    /*#[Route('/user', name: 'update', methods: 'POST')]
-    public function update(Request $request): JsonResponse
-    {
-        try {
 
-            $dataMiddellware = $this->tokenVerifier->checkToken($request);
-            if (gettype($dataMiddellware) == 'boolean') {
-                return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
-            }
-            $user = $dataMiddellware;
 
-        $firstname = $request->request->get('firstname');
-        $lastname = $request->request->get('lastname');
-        $genre = $request->request->get('genre');
-
-        $keys = array_keys($request->request->all());
-        $allowedKeys = ['firstname', 'lastname', 'genre'];
-        $diff = array_diff($keys, $allowedKeys);
-        if (count($diff) > 0) {
-            return new JsonResponse(
-                [
-                    'error' => true,
-                    'message' => 'Erreur de validation des données.',
-                ],
-                JsonResponse::HTTP_UNPROCESSABLE_ENTITY
-            );
-        }
-
-       
-        if ($genre !== null && !in_array($genre, ['M', 'F'])) {
-            return new JsonResponse([
-                'error' => true,
-                'message' => 'Le genre doit être spécifié M pour homme ou F pour femme.',
-            ], JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-       
-        if (isset($firstname) && (strlen($firstname) < 1 || strlen($firstname) > 60)) {
-            return new JsonResponse([
-                'error' => true,
-                'message' => 'La longueur du prénom doit être comprise entre 1 et 60 caractères.',
-            ], JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-       
-        if (isset($lastname) && (strlen($lastname) < 1 || strlen($lastname) > 60)) {
-            return new JsonResponse([
-                'error' => true,
-                'message' => 'La longueur du nom de famille doit être comprise entre 1 et 60 caractères.',
-            ], JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-    
-        if ($firstname !== null) {
-            $user->setFirstName($firstname);
-        }
-
-        if ($lastname !== null) {
-            $user->setLastName($lastname);
-        }
-
-        if ($genre !== null) {
-            $user->setGenre($genre);
-        }
-
-        
-        $this->entityManager->flush();
-
-        if (empty($firstname) && empty($lastname) && empty($genre)) {
-            return new JsonResponse([
-                'error' => true,
-                'message' => 'Les données fournies sont invalides ou incomplètes.',
-            ], JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        return $this->json([
-            'error' => false,
-            'message' => 'Votre inscription a bien été prise en compte',
-        ]);
-    } catch (\Exception $e) {
-        return new JsonResponse([
-            'error' => 'Error: ' . $e->getMessage(),
-        ], JsonResponse::HTTP_NOT_FOUND);
-    }
-}*/
 
 #[Route('/user/update/{id}', name: 'update_user', methods: ['POST'])]
-    public function updateUser(Request $request, int $id): JsonResponse
+    public function updateUser(Request $request, int $id): Response
     {
         try {
-            /*$dataMiddleware = $this->tokenVerifier->checkToken($request);
-            if (gettype($dataMiddleware) === 'boolean') {
-                return $this->json(
-                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
-                    JsonResponse::HTTP_UNAUTHORIZED
-                );
-            }
-            $user = $dataMiddleware;*/
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
+        }
+        $user = $dataMiddleware;
 
             if (!$id) {
                 return $this->json([
@@ -415,6 +508,7 @@ if ($existingUser && $existingUser->getId() !== $id) {
 
             $this->entityManager->flush();
 
+            return $this->redirectToRoute('homepage');
             return $this->json([
                 'error' => false,
                 'message' => "Utilisateur mis à jour avec succès."
@@ -429,13 +523,14 @@ if ($existingUser && $existingUser->getId() !== $id) {
     public function deleteUser(Request $request, $id): JsonResponse
     {
         try {
-
-            $dataMiddellware = $this->tokenVerifier->checkToken($request);
-            if (gettype($dataMiddellware) == 'boolean') {
-                return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+            $dataMiddleware = $this->tokenVerifier->checkToken($request);
+            if (gettype($dataMiddleware) === 'boolean') {
+                return $this->json(
+                    $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                    JsonResponse::HTTP_UNAUTHORIZED
+                );
             }
-
-            $user = $dataMiddellware;
+            $user = $dataMiddleware;
 
             $user = $this->userRepository->find($id);
 
@@ -446,6 +541,7 @@ if ($existingUser && $existingUser->getId() !== $id) {
                     'message' => 'Utilisateur non trouvé.',
                 ], JsonResponse::HTTP_NOT_FOUND);
             }
+
 
             
             $this->entityManager->remove($user);
@@ -470,12 +566,14 @@ public function getUserInfo(Request $request, int $id): Response
 {
     try {
 
-     /*   $dataMiddellware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddellware) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
         }
-
-        $user = $dataMiddellware;*/
+        $user = $dataMiddleware;;
         
         $user = $this->userRepository->find($id);
 
@@ -491,11 +589,11 @@ public function getUserInfo(Request $request, int $id): Response
             throw new \Exception('Utilisateur non trouvé.');
         }
 
-        return $this->render('get_user.html.twig', [
+        return $this->render('gestion_user/get_user.html.twig', [
             'user' => $user,
         ]);
     } catch (\Exception $e) {
-        return $this->render('error.html.twig', [
+        return $this->render('gestion_user/error.html.twig', [
             'message' => 'Une erreur est survenue : ' . $e->getMessage(),
         ]);
     }
@@ -506,16 +604,18 @@ public function getUserInfo(Request $request, int $id): Response
 public function getAllUsers(Request $request): Response
 {
     try {
-        $dataMiddellware = $this->tokenVerifier->checkToken($request);
-        if (gettype($dataMiddellware) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken($dataMiddellware), JsonResponse::HTTP_UNAUTHORIZED);
+        $dataMiddleware = $this->tokenVerifier->checkToken($request);
+        if (gettype($dataMiddleware) === 'boolean') {
+            return $this->json(
+                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
+                JsonResponse::HTTP_UNAUTHORIZED
+            );
         }
-
-        $user = $dataMiddellware;
+        $user = $dataMiddleware;
 
         $users = $this->userRepository->findAll();
        // Passez les utilisateurs à la vue Twig pour affichage
-       return $this->render('get_all_users.html.twig', [
+       return $this->render('gestion_user/get_all_users.html.twig', [
         'users' => $users,
     ]);
 } catch (\Exception $e) {

@@ -1,9 +1,11 @@
 {% extends 'base.html.twig' %}
 
-{% block inscription %}Inscription{% endblock %}
+{% block inscription %}Création user{% endblock %}
 
 {% block stylesheets %}
-    {{ parent() }}
+    {% if block('stylesheets') is defined %}
+        {{ parent() }}
+    {% endif %}
     <style>
         /* Style pour le titre */
         h1 {
@@ -43,8 +45,8 @@
 {% endblock %}
 
 {% block body %}
-    <h1>Register</h1>
-    <form action="{{ path('create_user') }}" method="POST">
+    <h1>Créer user</h1>
+    <form action="{{ path('create') }}" method="POST">
         <div>
             <label for="firstname">First Name:</label>
             <input type="text" id="firstname" name="firstname" required>
@@ -72,6 +74,6 @@
             <input type="checkbox" id="rgpd" name="rgpd" required>
             <label for="rgpd">I agree to the terms and conditions</label>
         </div>
-        <button type="submit" class="btn btn-primary btn-lg">Register</button>
+        <button type="submit" class="btn btn-primary btn-lg">Créer user</button>
     </form>
 {% endblock %}
