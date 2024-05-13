@@ -6,6 +6,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -34,6 +35,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'boolean', options: ['default' => '1'])]
     private ?bool $rgpd;
 
+    #[ORM\OneToMany(targetEntity: Quote::class, mappedBy: 'user', cascade: ['remove'])]
+    private Collection $quotes;
 
     public function getId(): ?int
     {
@@ -48,7 +51,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFirstName(string $firstname): self
     {
         $this->firstname = $firstname;
-
         return $this;
     }
 
@@ -60,7 +62,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastName(string $lastname): self
     {
         $this->lastname = $lastname;
-
         return $this;
     }
 
@@ -72,11 +73,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): self
     {
         $this->email = $email;
-
         return $this;
     }
 
-   public function getGenre(): ?string
+    public function getGenre(): ?string
     {
         return $this->genre;
     }
@@ -98,7 +98,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-        public function getPassword(): ?string
+    public function getPassword(): ?string
     {
         return $this->encrypte;
     }
@@ -106,11 +106,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $encrypte): static
     {
         $this->encrypte = $encrypte;
-
         return $this;
     }
 
-    public function getRoles() : array
+    public function getRoles(): array
     {
         return ['ROLE_USER'];
     }
@@ -128,10 +127,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
     }
+
     public function getUserIdentifier(): string
     {
         return $this->email;
     }
 
-
+    public function getQuotes(): Collection
+    {
+        return $this->quotes;
+    }
 }

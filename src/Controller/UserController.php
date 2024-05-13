@@ -514,37 +514,36 @@ class UserController extends AbstractController
                     JsonResponse::HTTP_UNAUTHORIZED
                 );
             }
-            $user = $dataMiddleware;
-
+    
             $user = $this->userRepository->find($id);
-
-            
+    
             if (!$user) {
                 return new JsonResponse([
                     'error' => true,
                     'message' => 'Utilisateur non trouvé.',
                 ], JsonResponse::HTTP_NOT_FOUND);
             }
-
-
-            
+    
+            // Supprimer les devis associés à l'utilisateur
+            foreach ($user->getQuotes() as $quote) {
+                $this->entityManager->remove($quote);
+            }
+    
             $this->entityManager->remove($user);
             $this->entityManager->flush();
-
-           
+    
             return new JsonResponse([
                 'error' => false,
-                'message' => 'L\'utilisateur a été supprimé avec succès.',
+                'message' => 'L\'utilisateur a été supprimé avec succès, ainsi que ses devis associés.',
             ]);
         } catch (\Exception $e) {
-            
             return new JsonResponse([
                 'error' => true,
                 'message' => 'Une erreur est survenue lors de la suppression de l\'utilisateur : ' . $e->getMessage(),
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-
+    
  #[Route('/user/{id}', name: 'get_user', methods: ['GET'])]
     public function getUserInfo(Request $request, int $id): Response
     {

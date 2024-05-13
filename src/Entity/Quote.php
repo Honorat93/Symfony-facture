@@ -25,10 +25,10 @@ class Quote
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'quotes')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
-
+    
     public function getId(): ?int
     {
         return $this->id;
