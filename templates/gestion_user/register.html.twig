@@ -3,9 +3,11 @@
 {% block inscription %}Inscription{% endblock %}
 
 {% block stylesheets %}
+    {% if block('stylesheets') is defined %}
+        {{ parent() }}
+    {% endif %}
     <style>
-
-            /* Style pour le titre */
+        /* Style pour le titre */
         h1 {
             text-align: center;
         }
@@ -39,32 +41,10 @@
             box-sizing: border-box;
         }
 
-        /* Style pour le bouton */
-        button[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        button[type="submit"]:hover {
-            background-color: #45a049;
-        }
     </style>
 {% endblock %}
 
 {% block body %}
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-</head>
-<body>
     <h1>Register</h1>
     <form action="{{ path('create_user') }}" method="POST">
         <div>
@@ -94,8 +74,6 @@
             <input type="checkbox" id="rgpd" name="rgpd" required>
             <label for="rgpd">I agree to the terms and conditions</label>
         </div>
-        <button type="submit">Register</button>
+        <button type="submit" class="btn btn-primary btn-lg">Register</button>
     </form>
-</body>
-</html>
 {% endblock %}

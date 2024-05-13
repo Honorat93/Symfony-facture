@@ -4,58 +4,82 @@
 
 {% block body %}
     <div class="container">
-        <h1>Accueil des Devis</h1>
+        <h1 class="text-center">Devis</h1>
 
         <!-- Boutons d'action -->
-        <div class="mb-3">
-            <a href="{{ path('create_quote') }}" class="btn btn-primary">Créer Devis</a>
-            <a href="#" class="btn btn-success">Modifier Devis</a>
-            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteQuoteModal">Supprimer Devis</button>
-            <a href="#" class="btn btn-info">Lire Devis</a>
+        <div class="text-right mb-3">
+            <button onclick="window.location.href='{{ path('quote_create') }}'" class="btn btn-primary" style="margin-right: 10px;">Créer Devis</button>
+            <!-- Ajoutez d'autres boutons d'action ici -->
         </div>
 
-        <!-- Liste des Devis -->
-        <div class="card">
-            <div class="card-header">
-                Liste des Devis
-            </div>
-            <div class="card-body">
-                <ul class="list-group">
-                    {% for quote in quotes %}
-                        <li class="list-group-item">
-                            <span class="fw-bold">Titre:</span> {{ quote.title }}<br>
-                            <span class="fw-bold">Description:</span> {{ quote.description }}<br>
-                            <span class="fw-bold">Montant:</span> {{ quote.amount }}<br>
-                            <span class="fw-bold">Créé le:</span> {{ quote.createdAt|date('Y-m-d H:i:s') }}<br>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div>
+        <!-- Liste des devis -->
+        <div class="row">
+            {% for quote in quotes %}
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><span class="blue-text">{{ quote.title }}</span></h5>
+                        <p class="card-text"><strong>ID:</strong> {{ quote.id }}</p>
+                        <!-- Ajoutez d'autres informations du devis ici -->
 
-    <!-- Modal de suppression de devis -->
-    <div class="modal fade" id="deleteQuoteModal" tabindex="-1" aria-labelledby="deleteQuoteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteQuoteModalLabel">Supprimer Devis</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Êtes-vous sûr de vouloir supprimer ce devis ?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <a href="#" class="btn btn-danger">Supprimer</a>
+                        <!-- Boutons d'action -->
+                        <div class="text-right">
+                            <button onclick="window.location.href='{{ path('quote_update', {'id': quote.id}) }}'" class="btn btn-primary" style="margin-right: 5px;">Modifier</button>
+                            <button class="btn btn-danger delete-quote-btn" data-quote-id="{{ quote.id }}" data-delete-url="{{ path('delete_quote', {'id': quote.id}) }}" style="margin-right: 5px;">Supprimer</button>
+                            <button onclick="window.location.href='{{ path('read_quote', {'id': quote.id}) }}'" class="btn btn-primary" style="margin-right: 5px;">Lire</button>
+                            <button class="btn btn-primary download-quote-btn" data-quote-id="{{ quote.id }}" style="margin-right: 5px;">Télécharger</button>
+                        </div>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
     </div>
-{% endblock %}
 
-{% block javascripts %}
     <script>
-        // Vous pouvez ajouter votre code JavaScript ici
+        // Fonction pour supprimer un devis
+        function deleteQuote(quoteId, deleteUrl) {
+            if (confirm("Voulez-vous vraiment supprimer ce devis ?")) {
+                fetch(deleteUrl, {
+                    method: 'DELETE',
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Actualiser la page ou faire toute autre action nécessaire
+                        location.reload();
+                    } else {
+                        console.error('Erreur lors de la suppression du devis.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Une erreur est survenue : ', error);
+                });
+            }
+        }
+
+        // Attacher un gestionnaire d'événements à chaque bouton de suppression
+        document.querySelectorAll('.delete-quote-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const quoteId = this.getAttribute('data-quote-id');
+                const deleteUrl = this.getAttribute('data-delete-url');
+                deleteQuote(quoteId, deleteUrl);
+            });
+        });
+
+        // Fonction pour télécharger un devis
+        function downloadQuote(quoteId) {
+            // Vous pouvez implémenter le téléchargement ici
+            // ou simplement rediriger l'utilisateur vers une route qui génère et retourne le PDF
+            // En supposant que vous avez une route nommée 'download_quote_pdf'
+            window.location.href = "{{ path('download_quote_pdf', {'id': 'quoteId'}) }}".replace('quoteId', quoteId);
+        }
+
+        // Attacher un gestionnaire d'événements à chaque bouton de téléchargement
+        document.querySelectorAll('.download-quote-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const quoteId = this.getAttribute('data-quote-id');
+                downloadQuote(quoteId);
+            });
+        });
     </script>
 {% endblock %}

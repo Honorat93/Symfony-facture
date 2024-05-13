@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Informations du Devis{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h1 class="text-center mb-4">Informations du Devis</h1>
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Informations du Devis</h5>
+                        <form>
+                            <div class="mb-3">
+                                <label for="inputTitle" class="form-label">Titre</label>
+                                <input type="text" class="form-control" id="inputTitle" value="{{ quote.title }}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="inputDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="inputDescription" rows="3" readonly>{{ quote.description }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="inputAmount" class="form-label">Montant</label>
+                                <input type="text" class="form-control" id="inputAmount" value="{{ quote.amount }}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="inputCreatedAt" class="form-label">Date de création</label>
+                                <input type="text" class="form-control" id="inputCreatedAt" value="{{ quote.createdAt|date('Y-m-d H:i:s') }}" readonly>
+                            </div>
+                            <!-- Ajoutez d'autres champs du devis ici -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

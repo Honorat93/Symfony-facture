@@ -3,19 +3,17 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
-use App\Entity\User;
+use Symfony\Component\HttpFoundation\Request;
 use App\Repository\UserRepository;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWSProvider\JWSProviderInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 class TokenManagementController extends AbstractController
 {
     private $jwtManager;
     private $jwtProvider;
     private $userRepository;
+
     public function __construct(JWTTokenManagerInterface $jwtManager, JWSProviderInterface $jwtProvider, UserRepository $userRepository)
     {
         $this->jwtManager = $jwtManager;
@@ -23,36 +21,31 @@ class TokenManagementController extends AbstractController
         $this->userRepository = $userRepository;
     }
 
-
-
     public function checkToken(Request $request)
-{
-    if ($request->headers->has('Authorization')) {
-        $data = explode(" ", $request->headers->get('Authorization'));
-        if (count($data) == 2) {
-            $token = $data[1];
+    {
+        $jwtToken = $request->cookies->get('jwt_token');
+
+        if ($jwtToken) {
             try {
-                $dataToken = $this->jwtProvider->load($token);
-                if ($dataToken && $dataToken->isVerified()) {
-                    $user = $this->userRepository->findOneBy(['email' => $dataToken->getPayload()['username']]);
-                    return $user;
+                $dataToken = $this->jwtProvider->load($jwtToken);
+                if ($dataToken->isVerified()) {
+                    $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["username"]]);
+                    return ($user) ? $user : false;
                 }
             } catch (\Throwable $th) {
-                // Log the error for debugging purposes
-                error_log('Error verifying JWT token: ' . $th->getMessage());
                 return false;
             }
+        } else {
+            return true; // Pas de token dans le cookie, probablement non authentifié
         }
+        return false; // Si quelque chose ne va pas, retourne false par défaut
     }
-    // No Authorization header or invalid token format
-    return null;
-}
 
     public function sendJsonErrorToken($nullToken): array
     {
         return [
             'error' => true,
-            'message' => ($nullToken) ? "Authentification requise. Vous devez être connecté pour effectuer cette action." : "Le token fourni est incorrect",
+            'message' => ($nullToken) ? "Authentification requise. Vous devez être connecté pour effectuer cette action." : "Token incorrect",
         ];
     }
 }

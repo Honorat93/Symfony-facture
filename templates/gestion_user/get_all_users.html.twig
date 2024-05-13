@@ -3,12 +3,12 @@
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <h1 class="text-center mb-4">Liste des Utilisateurs</h1>
+                <style>
+                    .blue-text {
+                        color: blue;
+                    }
+                </style>
                 <form id="userForm">
-                    <style>
-                        .blue-text {
-                            color: blue;
-                        }
-                    </style>
                     <div class="row">
                         {% for user in users %}
                         <div class="col-md-6">
