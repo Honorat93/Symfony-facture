@@ -18,7 +18,6 @@ use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Cookie;
-use App\Service\EmailRegistrationService;
 
 
 class UserController extends AbstractController 
@@ -29,7 +28,6 @@ class UserController extends AbstractController
     private $passwordEncoder;
     private $jwtManager;
     private $tokenVerifier;
-    private $emailRegistrationService;
 
     public function __construct(
         UserRepository $userRepository,
@@ -38,7 +36,6 @@ class UserController extends AbstractController
         UserPasswordHasherInterface $passwordEncoder,
         JWTTokenManagerInterface $jwtManager,
         TokenManagementController $tokenVerifier,
-        EmailRegistrationService $emailRegistrationService
     ) {
         $this->userRepository = $userRepository;
         $this->entityManager = $entityManager;
@@ -46,7 +43,6 @@ class UserController extends AbstractController
         $this->passwordEncoder = $passwordEncoder;
         $this->jwtManager = $jwtManager;
         $this->tokenVerifier = $tokenVerifier;
-        $this->emailRegistrationService = $emailRegistrationService;
     }
 
    // Vérifie si un utilisateur existe en fonction de son ID
@@ -190,36 +186,6 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/email-register', name: 'register_form')]
-    public function registerForm(): Response
-    {
-        return $this->render('gestion_user/registerByEmail.html.twig');
-    }
-
-    #[Route('/register-by-email', name: 'register_by_email', methods: ['POST'])]
-    public function registerByEmail(Request $request, EmailRegistrationService $emailRegistrationService): Response
-    {
-        $user = new User();
-        $form = $this->createForm(RegistrationType::class, $user);
-        $form->handleRequest($request);
-
-        if($form->isSubmitted() && $form->isValid()) {
-            $user->setPassword(
-                $this->passwordEncoder->encodePassword($user, $form->get("password")->getData())
-            );
-            $user->setToken($this->generateToken());
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($user);
-            $em->flush();
-            $this->mailer->sendEmail($user->getEmail(), $user->getToken());
-            $this->addFlash("success", "Inscription réussie !");
-        }
-
-        return $this->render('registration/register.html.twig', [
-            'form' => $form->createView()
-        ]);
-    }
-    
 
     #[Route('/register', name: 'create_user', methods: 'POST')]
     public function createUser(Request $request): Response
