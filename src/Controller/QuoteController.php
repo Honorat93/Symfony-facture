@@ -448,6 +448,4 @@ public function downloadQuotePdf(Request $request, int $id): Response
     }
 }
  
-
-
 } 

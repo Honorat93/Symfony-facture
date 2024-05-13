@@ -9,7 +9,7 @@
         <!-- Boutons d'action -->
         <div class="text-right mb-3">
             <button onclick="window.location.href='{{ path('quote_create') }}'" class="btn btn-primary" style="margin-right: 10px;">Créer Devis</button>
-            <!-- Ajoutez d'autres boutons d'action ici -->
+            <button onclick="window.location.href='{{ path('homepage') }}'" class="btn btn-primary">Retourner à l'accueil</button>
         </div>
 
         <!-- Liste des devis -->
@@ -20,7 +20,6 @@
                     <div class="card-body">
                         <h5 class="card-title"><span class="blue-text">{{ quote.title }}</span></h5>
                         <p class="card-text"><strong>ID:</strong> {{ quote.id }}</p>
-                        <!-- Ajoutez d'autres informations du devis ici -->
 
                         <!-- Boutons d'action -->
                         <div class="text-right">
