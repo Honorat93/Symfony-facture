@@ -65,7 +65,7 @@ class QuoteController extends AbstractController
                 );
             }
             $user = $dataMiddleware;
-            // Récupérer le devis à modifier
+            
             $quote = $this->quoteRepository->find($id);
     
             if (!$quote) {
@@ -75,7 +75,7 @@ class QuoteController extends AbstractController
                 ], JsonResponse::HTTP_NOT_FOUND);
             }
     
-            // Afficher le formulaire de modification du devis
+            
             return $this->render('gestion_devis/update_quote.html.twig', [
                 'quote' => $quote,
             ]);
@@ -115,9 +115,9 @@ class QuoteController extends AbstractController
         }
         $user = $dataMiddleware;
 
-        $quotes = $this->quoteRepository->findAll(); // Exemple, ajustez selon votre logique
+        $quotes = $this->quoteRepository->findAll(); 
 
-        // Rendre la vue avec les devis récupérés
+        
         return $this->render('gestion_devis/devis.html.twig', [
             'quotes' => $quotes,
         ]);
@@ -139,10 +139,10 @@ public function createQuote(Request $request): Response
         }
         $user = $dataMiddleware;
 
-        // Récupérer les données du formulaire encodé en URL
+        
         $data = $request->request->all();
 
-        // Vérifier si l'email de l'utilisateur est présent dans les données
+        
         if (empty($data['user_email'])) {
             return $this->json([
                 'error' => true,
@@ -150,13 +150,13 @@ public function createQuote(Request $request): Response
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        // Récupérer l'e-mail de l'utilisateur
+        
         $userEmail = $data['user_email'];
 
-        // Rechercher l'utilisateur dans le repository par son e-mail
+       
         $user = $this->userRepository->findOneByEmail($userEmail);
 
-        // Vérifier si l'utilisateur existe
+        
         if (!$user) {
             return $this->json([
                 'error' => true,
@@ -164,7 +164,7 @@ public function createQuote(Request $request): Response
             ], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        // Vérifier les autres champs du formulaire
+    
         if (empty($data['title']) || empty($data['description']) || empty($data['amount'])) {
             return $this->json([
                 'error' => true,
@@ -172,7 +172,7 @@ public function createQuote(Request $request): Response
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
         
-        // Récupérer les champs du formulaire
+      
         $title = $data['title'];
         $description = $data['description'];
         $amount = $data['amount'];
@@ -184,7 +184,7 @@ public function createQuote(Request $request): Response
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        // Créer un nouvel objet Quote
+    
         $quote = new Quote();
         $quote->setTitle($title)
             ->setDescription($description)
@@ -192,21 +192,21 @@ public function createQuote(Request $request): Response
             ->setCreatedAt(new \DateTime())
             ->setUser($user);
 
-        // Maintenant que vous avez l'utilisateur, vous pouvez récupérer son nom et son prénom
+       
         $firstName = $user->getFirstName();
         $lastName = $user->getLastName();
 
-        // Vous pouvez maintenant utiliser $firstName et $lastName comme vous le souhaitez, par exemple :
+       
         $authorName = $firstName . ' ' . $lastName;
 
-        // Enregistrer le devis
+     
         $this->entityManager->persist($quote);
         $this->entityManager->flush();
         
         return new RedirectResponse($this->generateUrl('quote_home'));
         
     } catch (\Exception $e) {
-        // En cas d'erreur, renvoyer une réponse JSON avec un code d'erreur interne du serveur
+        
         return $this->json([
             'error' => true,
             'message' => 'Erreur lors de la création du devis : ' . $e->getMessage(),
@@ -268,7 +268,7 @@ public function updateQuote(Request $request, int $id): Response
             ], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        // Récupérer les données du formulaire encodé en URL
+        
         $data = $request->request->all();
 
         if (empty($data['title']) || empty($data['description']) || empty($data['amount'])) {
@@ -278,7 +278,7 @@ public function updateQuote(Request $request, int $id): Response
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        // Mise à jour des données du devis
+
         $quote->setTitle($data['title'])
               ->setDescription($data['description'])
               ->setAmount($data['amount']);
@@ -318,7 +318,7 @@ public function deleteQuote(Request $request, int $id): JsonResponse
             ], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        // Suppression du devis
+      
         $this->entityManager->remove($quote);
         $this->entityManager->flush();
 
@@ -350,7 +350,7 @@ public function getAllQuotes(Request $request): Response
 
         $quotes = $this->quoteRepository->findAll();
 
-        // Transformation des objets devis en tableau associatif
+      
         $formattedQuotes = [];
         foreach ($quotes as $quote) {
             $formattedQuotes[] = [
@@ -393,7 +393,7 @@ public function downloadQuotePdf(Request $request, int $id): Response
             ], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        // Vérifier si l'utilisateur est associé au devis
+  
         $user = $quote->getUser();
         if (!$user) {
             return new JsonResponse([
@@ -406,36 +406,35 @@ public function downloadQuotePdf(Request $request, int $id): Response
         $lastName = $user->getLastName();
 
         $authorName = $firstName . ' ' . $lastName;
-        // Créer un nouvel objet TCPDF
+
         $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
-        // Configuration du document PDF
         $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor($authorName); // Nom complet de l'utilisateur comme auteur
+        $pdf->SetAuthor($authorName); 
         $pdf->SetTitle('Devis: ' . $quote->getTitle());
         $pdf->SetSubject('Devis');
         $pdf->SetKeywords('Devis, PDF');
 
-        // Ajouter une page
+
         $pdf->AddPage();
 
-        // Contenu du devis (vous pouvez personnaliser cela selon vos besoins)
+
         $html = '<h1>' . $quote->getTitle() . '</h1>';
         $html .= '<p><strong>Description:</strong> ' . $quote->getDescription() . '</p>';
         $html .= '<p><strong>Montant:</strong> ' . $quote->getAmount() . '</p>';
 
-        // Informations sur l'utilisateur
+
         $html .= '<h2>Informations sur l\'utilisateur:</h2>';
         $html .= '<p><strong>Nom complet:</strong> ' . $user->getFirstName() . ' ' . $user->getLastName() . '</p>';
         $html .= '<p><strong>Email:</strong> ' . $user->getEmail() . '</p>';
 
-        // Écrire le contenu dans le PDF
+
         $pdf->writeHTML($html, true, false, true, false, '');
 
-        // Nom du fichier PDF à télécharger
+
         $fileName = 'quote_' . $quote->getId() . '.pdf';
 
-        // Renvoyer le PDF en réponse
+    
         return new Response($pdf->Output($fileName, 'D'), Response::HTTP_OK, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
