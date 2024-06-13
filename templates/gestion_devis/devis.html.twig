@@ -6,13 +6,13 @@
     <div class="container">
         <h1 class="text-center">Devis</h1>
 
-        <!-- Boutons d'action -->
+       
         <div class="text-right mb-3">
             <button onclick="window.location.href='{{ path('quote_create') }}'" class="btn btn-primary" style="margin-right: 10px;">Créer Devis</button>
             <button onclick="window.location.href='{{ path('homepage') }}'" class="btn btn-primary">Retourner à l'accueil</button>
         </div>
 
-        <!-- Liste des devis -->
+     
         <div class="row">
             {% for quote in quotes %}
             <div class="col-md-6 mb-3">
@@ -21,7 +21,7 @@
                         <h5 class="card-title"><span class="blue-text">{{ quote.title }}</span></h5>
                         <p class="card-text"><strong>ID:</strong> {{ quote.id }}</p>
 
-                        <!-- Boutons d'action -->
+                        
                         <div class="text-right">
                             <button onclick="window.location.href='{{ path('quote_update', {'id': quote.id}) }}'" class="btn btn-primary" style="margin-right: 5px;">Modifier</button>
                             <button class="btn btn-danger delete-quote-btn" data-quote-id="{{ quote.id }}" data-delete-url="{{ path('delete_quote', {'id': quote.id}) }}" style="margin-right: 5px;">Supprimer</button>
