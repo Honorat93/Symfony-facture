@@ -171,7 +171,7 @@
 
    $(document).ready(function() {
     $('#readUserButton').click(function() {
-        var userId = $('#userIdInput').val().trim();
+        let userId = $('#userIdInput').val().trim();
 
         if (userId === '') {
             alert("Veuillez entrer l'ID de l'utilisateur.");
@@ -204,7 +204,7 @@
     }
 
     window.addEventListener('pageshow', function(event) {
-        var historyTraversal = event.persisted || 
+        let historyTraversal = event.persisted || 
                                (typeof window.performance != 'undefined' && 
                                 window.performance.navigation.type === 2);
         if (historyTraversal) {
@@ -214,7 +214,7 @@
 
 
     $('#updateUserButton').click(function() {
-        var userId = $('#updateUserIdInput').val().trim();
+        let userId = $('#updateUserIdInput').val().trim();
 
         if (userId === '') {
             alert("Veuillez entrer l'ID de l'utilisateur à modifier.");
@@ -245,7 +245,7 @@
 
 
     $('#deleteUserButtonConfirm').click(function() {
-        var userId = $('#deleteUserIdInput').val().trim();
+        let userId = $('#deleteUserIdInput').val().trim();
         if (userId === '') {
             alert("Veuillez entrer l'ID de l'utilisateur à supprimer.");
             return;
@@ -258,7 +258,7 @@
     });
 
     $('#confirmDeleteButton').click(function() {
-        var userId = $('#deleteUserIdInput').val().trim();
+        let userId = $('#deleteUserIdInput').val().trim();
         $.ajax({
             url: '{{ path('delete_user', {'id': 'userId'}) }}'.replace('userId', userId),
             type: 'POST',
