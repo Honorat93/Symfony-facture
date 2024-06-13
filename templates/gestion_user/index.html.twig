@@ -8,7 +8,7 @@
     background-color: #f2f2f2;
     padding: 20px;
     max-width: 200px;
-    margin: 0; /* Modifier cette ligne */
+    margin: 0; 
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -52,7 +52,6 @@
     </div>
 
 <div style="position: fixed; top: 0; right: 0; width: calc(100% - 210px); margin-top: 10px; display: flex; flex-direction: column; align-items: flex-end;">
-    <!-- Boutons pour manipuler les utilisateurs -->
     <div style="width: 100%; display: flex; justify-content: flex-end;">
         <button onclick="window.location.href='{{ path('user_create') }}'" type="button" class="btn btn-primary btn-lg" style="margin-right: 10px; width: 24%;">Créer user</button>
         <button type="button" class="btn btn-primary btn-lg" id="updateUserButtonModal" data-bs-toggle="modal" data-bs-target="#updateUserModal" style="margin-right: 10px; width: 24%;">Mettre à jour user</button>
@@ -60,7 +59,7 @@
         <button type="button" class="btn btn-primary btn-lg" id="searchUserButton" data-bs-toggle="modal" data-bs-target="#readUserModal" style="width: 24%;">Lire user</button>
     </div>
 
-    <!-- Tableau des utilisateurs -->
+   
     <div class="user-table-container" style="width: 100%; margin-top: 40px;"> 
         <table class="table user-table" style="width: 100%;">
             <thead>
@@ -89,7 +88,7 @@
     </div>
 </div>
 
-    <!-- Modale pour lire un utilisateur -->
+   
     <div class="modal fade" id="readUserModal" tabindex="-1" role="dialog" aria-labelledby="readUserModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -108,7 +107,7 @@
         </div>
     </div>
 
-   <!-- Modale pour supprimer un utilisateur -->
+   
     <div class="modal fade" id="deleteUserModal" tabindex="-1" role="dialog" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -127,7 +126,7 @@
         </div>
     </div>
 
-    <!-- Modale pour mettre à jour un utilisateur -->
+  
     <div class="modal fade" id="updateUserModal" tabindex="-1" role="dialog" aria-labelledby="updateUserModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -146,7 +145,7 @@
         </div>
     </div>
 
-    <!-- Modale pour confirmation de suppression -->
+   
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
