@@ -64,7 +64,6 @@
     <div class="container"> 
         <h1 class="text-center">Modifier Devis</h1>
         <form method="post" action="{{ path('update_quote', {'id': quote.id}) }}">
-            {# Utilisez un champ hidden pour la méthode PUT #}
             <input type="hidden" name="_method" value="PUT">
 
             <div class="form-group">
