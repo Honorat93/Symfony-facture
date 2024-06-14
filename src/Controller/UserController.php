@@ -173,10 +173,7 @@ class UserController extends AbstractController
         
         $dataMiddleware = $this->tokenVerifier->checkToken($request);
         if (gettype($dataMiddleware) === 'boolean') {
-            return $this->json(
-                $this->tokenVerifier->sendJsonErrorToken($dataMiddleware),
-                JsonResponse::HTTP_UNAUTHORIZED
-            );
+            return new RedirectResponse($this->generateUrl('login_form'));
         }
         $user = $dataMiddleware;
         
@@ -341,13 +338,12 @@ class UserController extends AbstractController
 
             return $this->redirectToRoute('homepage');
 
-            // Une fois que l'utilisateur est créé avec succès
             return new JsonResponse([
                 'success' => true,
                 'message' => 'L\'utilisateur a été créé avec succès.',
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
-            // Gestion des erreurs
+          
             return new JsonResponse([
                 'error' => 'Error: ' . $e->getMessage(),
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
